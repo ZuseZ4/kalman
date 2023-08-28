@@ -79,8 +79,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DEIGEN_NO_DEBUG")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -no-opaque-pointers ")
 #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Xclang -no-opaque-pointers ")
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --save-temps")
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --save-temps")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --save-temps")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --save-temps")
 
 
 # Examples

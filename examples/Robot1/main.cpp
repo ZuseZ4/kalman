@@ -17,6 +17,7 @@
 #include <random>
 #include <chrono>
 
+#include <Eigen/Core>
 int enzyme_dup;
 int enzyme_dupnoneed;
 int enzyme_out;
@@ -44,12 +45,27 @@ typedef Robot1::OrientationMeasurement<T> OrientationMeasurement;
 typedef Robot1::PositionMeasurementModel<T> PositionModel;
 typedef Robot1::OrientationMeasurementModel<T> OrientationModel;
 
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
+
+void __enzyme_autodiff2(void *, ...);
+void bar(MatrixXd *m, VectorXd *v) { *v = *m * *v; }
+
 int main(int argc, char** argv)
 {
   {
     double x = 6.0;
     double df_dx = __enzyme_autodiff((void *)foo, x);
     printf("f(x) = %f, f'(x) = %f", foo(x), df_dx);
+
+    MatrixXd m = MatrixXd::Random(30, 30);
+    MatrixXd dm = MatrixXd::Random(30, 30);
+    m = (m + MatrixXd::Constant(30, 30, 1.2)) * 50;
+    std::cout << "m =" << std::endl << m << std::endl;
+    VectorXd v = VectorXd::Random(30);
+    VectorXd dv = VectorXd::Random(30);
+    __enzyme_autodiff2((void *)bar, &m, &dm, &v, &dv);
+    std::cout << "dm, dv: =" << std::endl << dm << std::endl << dv << std::endl;
   }
   // Simulated (true) system state
   State x;
