@@ -4,6 +4,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+#define EIGEN_USE_BLAS
 
 #include "SystemModel.hpp"
 #include "OrientationMeasurementModel.hpp"
@@ -20,13 +21,14 @@ int enzyme_dup;
 int enzyme_dupnoneed;
 int enzyme_out;
 int enzyme_const;
-template <typename return_type, typename... T>
-return_type __enzyme_fwddiff(void *, T...);
+// template <typename return_type, typename... T>
+// return_type __enzyme_fwddiff(void *, T...);
 
-template <typename return_type, typename... T>
-return_type __enzyme_autodiff(void *, T...);
+// template <typename return_type, typename... T>
+// return_type __enzyme_autodiff(void *, T...);
 
-double f(double x) { return x * x; }
+extern double __enzyme_autodiff(void *, double);
+double foo(double x) { return x * x; }
 
 using namespace KalmanExamples;
 
@@ -45,10 +47,9 @@ typedef Robot1::OrientationMeasurementModel<T> OrientationModel;
 int main(int argc, char** argv)
 {
   {
-    double x = 5.0;
-    double dx = 1.0;
-    double df_dx = __enzyme_fwddiff<double>((void *)f, enzyme_dup, x, dx);
-    printf("f(x) = %f, f'(x) = %f", f(x), df_dx);
+    double x = 6.0;
+    double df_dx = __enzyme_autodiff((void *)foo, x);
+    printf("f(x) = %f, f'(x) = %f", foo(x), df_dx);
   }
   // Simulated (true) system state
   State x;
