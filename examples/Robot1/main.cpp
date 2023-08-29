@@ -29,7 +29,7 @@ int enzyme_const;
 // return_type __enzyme_autodiff(void *, T...);
 
 extern double __enzyme_autodiff(void *, double);
-double foo(double x) { return x * x; }
+// double foo(double x) { return x * x; }
 
 using namespace KalmanExamples;
 
@@ -45,28 +45,13 @@ typedef Robot1::OrientationMeasurement<T> OrientationMeasurement;
 typedef Robot1::PositionMeasurementModel<T> PositionModel;
 typedef Robot1::OrientationMeasurementModel<T> OrientationModel;
 
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
+// using Eigen::MatrixXd;
+// using Eigen::VectorXd;
+//
+// void __enzyme_autodiff2(void *, ...);
+// void bar(MatrixXd *m, VectorXd *v) { *v = *m * *v; }
 
-void __enzyme_autodiff2(void *, ...);
-void bar(MatrixXd *m, VectorXd *v) { *v = *m * *v; }
-
-int main(int argc, char** argv)
-{
-  {
-    double x = 6.0;
-    double df_dx = __enzyme_autodiff((void *)foo, x);
-    printf("f(x) = %f, f'(x) = %f", foo(x), df_dx);
-
-    MatrixXd m = MatrixXd::Random(30, 30);
-    MatrixXd dm = MatrixXd::Random(30, 30);
-    m = (m + MatrixXd::Constant(30, 30, 1.2)) * 50;
-    std::cout << "m =" << std::endl << m << std::endl;
-    VectorXd v = VectorXd::Random(30);
-    VectorXd dv = VectorXd::Random(30);
-    __enzyme_autodiff2((void *)bar, &m, &dm, &v, &dv);
-    std::cout << "dm, dv: =" << std::endl << dm << std::endl << dv << std::endl;
-  }
+double simulate(double input) {
   // Simulated (true) system state
   State x;
   x.setZero();
@@ -109,11 +94,12 @@ int main(int argc, char** argv)
   // distance measurements
   T distanceNoise = 0.25;
 
+  double ekfy_sum = 0.0;
   // Simulate for 100 steps
   const size_t N = 100;
   for (size_t i = 1; i <= N; i++) {
     // Generate some control input
-    u.v() = 1. + std::sin(T(2) * T(M_PI) / T(N));
+    u.v() = input + std::sin(T(2) * T(M_PI) / T(N));
     u.dtheta() = std::sin(T(2) * T(M_PI) / T(N)) * (1 - 2 * (i > 50));
 
     // Simulate system
@@ -160,12 +146,37 @@ int main(int argc, char** argv)
       x_ukf = ukf.update(pm, position);
     }
 
+    ekfy_sum += x_ekf.y();
+
     // Print to stdout as csv format
     std::cout << x.x() << "," << x.y() << "," << x.theta() << "," << x_pred.x()
               << "," << x_pred.y() << "," << x_pred.theta() << "," << x_ekf.x()
               << "," << x_ekf.y() << "," << x_ekf.theta() << "," << x_ukf.x()
               << "," << x_ukf.y() << "," << x_ukf.theta() << std::endl;
-    }
-    
+  }
+  return ekfy_sum / (double)N;
+}
+
+int main(int argc, char **argv) {
+    // MatrixXd m = MatrixXd::Random(30, 30);
+    // MatrixXd dm = MatrixXd::Random(30, 30);
+    // m = (m + MatrixXd::Constant(30, 30, 1.2)) * 50;
+    // std::cout << "m =" << std::endl << m << std::endl;
+    // VectorXd v = VectorXd::Random(30);
+    // VectorXd dv = VectorXd::Random(30);
+    //__enzyme_autodiff2((void *)bar, &m, &dm, &v, &dv);
+    // std::cout << "dm, dv: =" << std::endl << dm << std::endl << dv <<
+    // std::endl;
+    // }
+
+    double x1 = simulate(1.0);
+    double x2 = simulate(1.1);
+    std::cout << "x1: " << x1 << ", x2: " << x2 << std::endl;
+
+    double df_dx1 = __enzyme_autodiff((void *)simulate, 1.0);
+    double df_dx2 = __enzyme_autodiff((void *)simulate, 1.1);
+    printf("x = %f, f(x) = %f, f'(x) = %f", 1.0, x1, df_dx1);
+    printf("x = %f, f(x) = %f, f'(x) = %f", 1.1, x2, df_dx2);
+
     return 0;
 }
