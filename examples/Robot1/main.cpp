@@ -104,47 +104,47 @@ double simulate(double input) {
     x = sys.f(x, u);
 
     // // Add noise: Our robot move is affected by noise (due to actuator failures)
-    x.x() += systemNoise * 0.05; // noise(generator);
-    // x.y() += systemNoise * noise(generator);
-    // x.theta() += systemNoise * noise(generator);
+    x.x() += systemNoise * 0.05; // 0.05;
+    x.y() += systemNoise * 0.05;
+    x.theta() += systemNoise * 0.05;
 
-    // // Predict state for current time-step using the filters
-    // auto x_pred = predictor.predict(sys, u);
-    // auto x_ekf = ekf.predict(sys, u);
+    // Predict state for current time-step using the filters
+    auto x_pred = predictor.predict(sys, u);
+    auto x_ekf = ekf.predict(sys, u);
     // auto x_ukf = ukf.predict(sys, u);
 
-    // // Orientation measurement
-    // {
-    //   // We can measure the orientation every 5th step
-    //   OrientationMeasurement orientation = om.h(x);
+    // Orientation measurement
+    {
+      // We can measure the orientation every 5th step
+      OrientationMeasurement orientation = om.h(x);
 
-    //   // Measurement is affected by noise as well
-    //   orientation.theta() += orientationNoise * noise(generator);
+      // Measurement is affected by noise as well
+      orientation.theta() += orientationNoise * 0.05;
 
-    //   // Update EKF
-    //   x_ekf = ekf.update(om, orientation);
+      // Update EKF
+      x_ekf = ekf.update(om, orientation);
 
-    //   // Update UKF
-    //   // x_ukf = ukf.update(om, orientation);
-    // }
+      // Update UKF
+      // x_ukf = ukf.update(om, orientation);
+    }
 
-    // // Position measurement
-    // {
-    //   // We can measure the position every 10th step
-    //   PositionMeasurement position = pm.h(x);
+    // Position measurement
+    {
+      // We can measure the position every 10th step
+      PositionMeasurement position = pm.h(x);
 
-    //   // Measurement is affected by noise as well
-    //   position.d1() += distanceNoise * noise(generator);
-    //   position.d2() += distanceNoise * noise(generator);
+      // Measurement is affected by noise as well
+      position.d1() += distanceNoise * 0.05;
+      position.d2() += distanceNoise * 0.05;
 
-    //   // Update EKF
-    //   x_ekf = ekf.update(pm, position);
+      // Update EKF
+      x_ekf = ekf.update(pm, position);
 
-    //   // Update UKF
-    //   // x_ukf = ukf.update(pm, position);
-    // }
+      // Update UKF
+      // x_ukf = ukf.update(pm, position);
+    }
 
-  //   ekfy_sum += x_ekf.y();
+    ekfy_sum += x_ekf.y();
 
   //   // Print to stdout as csv format
   //   std::cout << x.x() << "," << x.y() << "," << x.theta() << "," << x_pred.x()
