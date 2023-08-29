@@ -113,7 +113,6 @@ double simulate(double input) {
     // Predict state for current time-step using the filters
     auto x_pred = predictor.predict(sys, u);
     auto x_ekf = ekf.predict(sys, u);
-    auto x_ukf = ukf.predict(sys, u);
 
     // Orientation measurement
     {
@@ -125,49 +124,23 @@ double simulate(double input) {
 
       // Update EKF
       x_ekf = ekf.update(om, orientation);
-
-      // Update UKF
-      x_ukf = ukf.update(om, orientation);
     }
 
     // Position measurement
     {
       // We can measure the position every 10th step
       PositionMeasurement position = pm.h(x);
-
-      // Measurement is affected by noise as well
-      position.d1() += distanceNoise * noise(generator);
-      position.d2() += distanceNoise * noise(generator);
-
       // Update EKF
       x_ekf = ekf.update(pm, position);
-
-      // Update UKF
-      x_ukf = ukf.update(pm, position);
     }
 
     ekfy_sum += x_ekf.y();
 
-    // Print to stdout as csv format
-    std::cout << x.x() << "," << x.y() << "," << x.theta() << "," << x_pred.x()
-              << "," << x_pred.y() << "," << x_pred.theta() << "," << x_ekf.x()
-              << "," << x_ekf.y() << "," << x_ekf.theta() << "," << x_ukf.x()
-              << "," << x_ukf.y() << "," << x_ukf.theta() << std::endl;
   }
   return ekfy_sum / (double)N;
 }
 
 int main(int argc, char **argv) {
-    // MatrixXd m = MatrixXd::Random(30, 30);
-    // MatrixXd dm = MatrixXd::Random(30, 30);
-    // m = (m + MatrixXd::Constant(30, 30, 1.2)) * 50;
-    // std::cout << "m =" << std::endl << m << std::endl;
-    // VectorXd v = VectorXd::Random(30);
-    // VectorXd dv = VectorXd::Random(30);
-    //__enzyme_autodiff2((void *)bar, &m, &dm, &v, &dv);
-    // std::cout << "dm, dv: =" << std::endl << dm << std::endl << dv <<
-    // std::endl;
-    // }
 
     double x1 = simulate(1.0);
     double x2 = simulate(1.1);
