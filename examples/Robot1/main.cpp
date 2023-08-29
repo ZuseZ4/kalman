@@ -67,9 +67,9 @@ double simulate(double input) {
   OrientationModel om;
 
   // Random number generation (for noise simulation)
-  std::default_random_engine generator;
-  generator.seed(std::chrono::system_clock::now().time_since_epoch().count());
-  std::normal_distribution<T> noise(0, 1);
+  // std::default_random_engine generator;
+  // generator.seed(std::chrono::system_clock::now().time_since_epoch().count());
+  // std::normal_distribution<T> noise(0, 1);
 
   // Some filters for estimation
   // Pure predictor without measurement updates
@@ -95,10 +95,10 @@ double simulate(double input) {
   // Simulate for 100 steps
   const size_t N = 100;
   const double dN = N;
-  for (size_t i = 1; i <= N; i++) {
+  // for (size_t i = 1; i <= N; i++) {
     // Generate some control input
-    u.v() = input + std::sin(T(2.0) * T(M_PI) / T(dN));
-    u.dtheta() = std::sin(T(2.0) * T(M_PI) / T(dN)) * (1.0);// - 2.0 * (i > 50));
+    u.v() = input;// + std::sin(T(2.0) * T(M_PI) / T(dN));
+    u.dtheta() = 2.0;// std::sin(T(2.0) * T(M_PI) / T(dN)) * (1.0);// - 2.0 * (i > 50));
 
     // // Simulate system
     x = sys.f(x, u);
@@ -152,7 +152,7 @@ double simulate(double input) {
   //             << "," << x_ekf.y() << "," << x_ekf.theta() //<< "," << x_ukf.x()
   //             << std::endl;
   //             //<< "," << x_ukf.y() << "," << x_ukf.theta() << std::endl;
-  }
+  // }
   return ekfy_sum / (double)N;
 }
 
