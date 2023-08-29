@@ -1,5 +1,21 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.9)
+
+find_package(Enzyme REQUIRED CONFIG)
+
+message("LLVM Version: " ${Enzyme_LLVM_VERSION_MAJOR})
+message("Found LLVM at: " ${Enzyme_LLVM_BINARY_DIR})
+
+# C and C++ Compilers can only be configured before project(...)
+set(CMAKE_C_COMPILER "${Enzyme_LLVM_BINARY_DIR}/bin/clang")
+set(CMAKE_CXX_COMPILER "${Enzyme_LLVM_BINARY_DIR}/bin/clang++")
+
 project(Kalman CXX)
+
+set(BLA_VENDER OpenBLAS)
+find_package(BLAS REQUIRED)
+if(BLAS_FOUND)
+    message("OpenBLAS found.")
+endif(BLAS_FOUND)
 
 # TODO: Use VERSION argument to project command after raising the minimum
 # cmake version to 3.0
@@ -15,6 +31,11 @@ set(KALMAN_CXX_FLAGS "-std=c++11")
 option(KALMAN_BUILD_EXAMPLES "Build the Kalman examples" ON)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
+message("found dir ${Enzyme_DIR}")
+message("found ${Enzyme_FOUND}")
+get_property(importTargetsAfter DIRECTORY "${CMAKE_SOURCE_DIR}" PROPERTY IMPORTED_TARGETS)
+message("imported targets ${importTargetsAfter}")
 
 find_package(Eigen3 REQUIRED)
 
@@ -55,9 +76,18 @@ include_directories(
 set(CMAKE_CXX_FLAGS "${KALMAN_CXX_FLAGS} -Wall -pedantic -g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DEIGEN_NO_DEBUG")
 
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -no-opaque-pointers ")
+#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Xclang -no-opaque-pointers ")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --save-temps")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --save-temps")
+
+
 # Examples
 if(KALMAN_BUILD_EXAMPLES)
   add_executable(example_robot1 "examples/Robot1/main.cpp")
+  #target_compile_options(example_robot1 PUBLIC)
+  target_link_libraries(example_robot1 PUBLIC LLDEnzymeFlags ${BLAS_LIBRARIES})
 endif()
 
 # Unit Tests

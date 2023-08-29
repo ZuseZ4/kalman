@@ -4,6 +4,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+#define EIGEN_USE_BLAS
 
 #include "SystemModel.hpp"
 #include "OrientationMeasurementModel.hpp"
@@ -16,6 +17,19 @@
 #include <random>
 #include <chrono>
 
+#include <Eigen/Core>
+int enzyme_dup;
+int enzyme_dupnoneed;
+int enzyme_out;
+int enzyme_const;
+// template <typename return_type, typename... T>
+// return_type __enzyme_fwddiff(void *, T...);
+
+// template <typename return_type, typename... T>
+// return_type __enzyme_autodiff(void *, T...);
+
+extern double __enzyme_autodiff(void *, double);
+// double foo(double x) { return x * x; }
 
 using namespace KalmanExamples;
 
@@ -31,106 +45,138 @@ typedef Robot1::OrientationMeasurement<T> OrientationMeasurement;
 typedef Robot1::PositionMeasurementModel<T> PositionModel;
 typedef Robot1::OrientationMeasurementModel<T> OrientationModel;
 
-int main(int argc, char** argv)
-{
-    // Simulated (true) system state
-    State x;
-    x.setZero();
-    
-    // Control input
-    Control u;
-    // System
-    SystemModel sys;
-    
-    // Measurement models
-    // Set position landmarks at (-10, -10) and (30, 75)
-    PositionModel pm(-10, -10, 30, 75);
-    OrientationModel om;
-    
-    // Random number generation (for noise simulation)
-    std::default_random_engine generator;
-    generator.seed( std::chrono::system_clock::now().time_since_epoch().count() );
-    std::normal_distribution<T> noise(0, 1);
-    
-    // Some filters for estimation
-    // Pure predictor without measurement updates
-    Kalman::ExtendedKalmanFilter<State> predictor;
-    // Extended Kalman Filter
-    Kalman::ExtendedKalmanFilter<State> ekf;
-    // Unscented Kalman Filter
-    Kalman::UnscentedKalmanFilter<State> ukf(1);
-    
-    // Init filters with true system state
-    predictor.init(x);
-    ekf.init(x);
-    ukf.init(x);
-    
-    // Standard-Deviation of noise added to all state vector components during state transition
-    T systemNoise = 0.1;
-    // Standard-Deviation of noise added to all measurement vector components in orientation measurements
-    T orientationNoise = 0.025;
-    // Standard-Deviation of noise added to all measurement vector components in distance measurements
-    T distanceNoise = 0.25;
-    
-    // Simulate for 100 steps
-    const size_t N = 100;
-    for(size_t i = 1; i <= N; i++)
+// using Eigen::MatrixXd;
+// using Eigen::VectorXd;
+//
+// void __enzyme_autodiff2(void *, ...);
+// void bar(MatrixXd *m, VectorXd *v) { *v = *m * *v; }
+
+double simulate(double input) {
+  // Simulated (true) system state
+  State x;
+  x.setZero();
+
+  // Control input
+  Control u;
+  // System
+  SystemModel sys;
+
+  // Measurement models
+  // Set position landmarks at (-10, -10) and (30, 75)
+  PositionModel pm(-10, -10, 30, 75);
+  OrientationModel om;
+
+  // Random number generation (for noise simulation)
+  std::default_random_engine generator;
+  generator.seed(std::chrono::system_clock::now().time_since_epoch().count());
+  std::normal_distribution<T> noise(0, 1);
+
+  // Some filters for estimation
+  // Pure predictor without measurement updates
+  Kalman::ExtendedKalmanFilter<State> predictor;
+  // Extended Kalman Filter
+  Kalman::ExtendedKalmanFilter<State> ekf;
+  // Unscented Kalman Filter
+  Kalman::UnscentedKalmanFilter<State> ukf(1);
+
+  // Init filters with true system state
+  predictor.init(x);
+  ekf.init(x);
+  ukf.init(x);
+
+  // Standard-Deviation of noise added to all state vector components during
+  // state transition
+  T systemNoise = 0.1;
+  // Standard-Deviation of noise added to all measurement vector components in
+  // orientation measurements
+  T orientationNoise = 0.025;
+  // Standard-Deviation of noise added to all measurement vector components in
+  // distance measurements
+  T distanceNoise = 0.25;
+
+  double ekfy_sum = 0.0;
+  // Simulate for 100 steps
+  const size_t N = 100;
+  for (size_t i = 1; i <= N; i++) {
+    // Generate some control input
+    u.v() = input + std::sin(T(2) * T(M_PI) / T(N));
+    u.dtheta() = std::sin(T(2) * T(M_PI) / T(N)) * (1 - 2 * (i > 50));
+
+    // Simulate system
+    x = sys.f(x, u);
+
+    // Add noise: Our robot move is affected by noise (due to actuator failures)
+    x.x() += systemNoise * noise(generator);
+    x.y() += systemNoise * noise(generator);
+    x.theta() += systemNoise * noise(generator);
+
+    // Predict state for current time-step using the filters
+    auto x_pred = predictor.predict(sys, u);
+    auto x_ekf = ekf.predict(sys, u);
+    auto x_ukf = ukf.predict(sys, u);
+
+    // Orientation measurement
     {
-        // Generate some control input
-        u.v() = 1. + std::sin( T(2) * T(M_PI) / T(N) );
-        u.dtheta() = std::sin( T(2) * T(M_PI) / T(N) ) * (1 - 2*(i > 50));
-        
-        // Simulate system
-        x = sys.f(x, u);
-        
-        // Add noise: Our robot move is affected by noise (due to actuator failures)
-        x.x() += systemNoise*noise(generator);
-        x.y() += systemNoise*noise(generator);
-        x.theta() += systemNoise*noise(generator);
-        
-        // Predict state for current time-step using the filters
-        auto x_pred = predictor.predict(sys, u);
-        auto x_ekf = ekf.predict(sys, u);
-        auto x_ukf = ukf.predict(sys, u);
-        
-        // Orientation measurement
-        {
-            // We can measure the orientation every 5th step
-            OrientationMeasurement orientation = om.h(x);
-            
-            // Measurement is affected by noise as well
-            orientation.theta() += orientationNoise * noise(generator);
-            
-            // Update EKF
-            x_ekf = ekf.update(om, orientation);
-            
-            // Update UKF
-            x_ukf = ukf.update(om, orientation);
-        }
-        
-        // Position measurement
-        {
-            // We can measure the position every 10th step
-            PositionMeasurement position = pm.h(x);
-            
-            // Measurement is affected by noise as well
-            position.d1() += distanceNoise * noise(generator);
-            position.d2() += distanceNoise * noise(generator);
-            
-            // Update EKF
-            x_ekf = ekf.update(pm, position);
-            
-            // Update UKF
-            x_ukf = ukf.update(pm, position);
-        }
-        
-        // Print to stdout as csv format
-        std::cout   << x.x() << "," << x.y() << "," << x.theta() << ","
-                    << x_pred.x() << "," << x_pred.y() << "," << x_pred.theta()  << ","
-                    << x_ekf.x() << "," << x_ekf.y() << "," << x_ekf.theta()  << ","
-                    << x_ukf.x() << "," << x_ukf.y() << "," << x_ukf.theta()
-                    << std::endl;
+      // We can measure the orientation every 5th step
+      OrientationMeasurement orientation = om.h(x);
+
+      // Measurement is affected by noise as well
+      orientation.theta() += orientationNoise * noise(generator);
+
+      // Update EKF
+      x_ekf = ekf.update(om, orientation);
+
+      // Update UKF
+      x_ukf = ukf.update(om, orientation);
     }
-    
+
+    // Position measurement
+    {
+      // We can measure the position every 10th step
+      PositionMeasurement position = pm.h(x);
+
+      // Measurement is affected by noise as well
+      position.d1() += distanceNoise * noise(generator);
+      position.d2() += distanceNoise * noise(generator);
+
+      // Update EKF
+      x_ekf = ekf.update(pm, position);
+
+      // Update UKF
+      x_ukf = ukf.update(pm, position);
+    }
+
+    ekfy_sum += x_ekf.y();
+
+    // Print to stdout as csv format
+    std::cout << x.x() << "," << x.y() << "," << x.theta() << "," << x_pred.x()
+              << "," << x_pred.y() << "," << x_pred.theta() << "," << x_ekf.x()
+              << "," << x_ekf.y() << "," << x_ekf.theta() << "," << x_ukf.x()
+              << "," << x_ukf.y() << "," << x_ukf.theta() << std::endl;
+  }
+  return ekfy_sum / (double)N;
+}
+
+int main(int argc, char **argv) {
+    // MatrixXd m = MatrixXd::Random(30, 30);
+    // MatrixXd dm = MatrixXd::Random(30, 30);
+    // m = (m + MatrixXd::Constant(30, 30, 1.2)) * 50;
+    // std::cout << "m =" << std::endl << m << std::endl;
+    // VectorXd v = VectorXd::Random(30);
+    // VectorXd dv = VectorXd::Random(30);
+    //__enzyme_autodiff2((void *)bar, &m, &dm, &v, &dv);
+    // std::cout << "dm, dv: =" << std::endl << dm << std::endl << dv <<
+    // std::endl;
+    // }
+
+    double x1 = simulate(1.0);
+    double x2 = simulate(1.1);
+    std::cout << "x1: " << x1 << ", x2: " << x2 << std::endl;
+
+    double df_dx1 = __enzyme_autodiff((void *)simulate, 1.0);
+    double df_dx2 = __enzyme_autodiff((void *)simulate, 1.1);
+    printf("x = %f, f(x) = %f, f'(x) = %f", 1.0, x1, df_dx1);
+    printf("x = %f, f(x) = %f, f'(x) = %f", 1.1, x2, df_dx2);
+
     return 0;
 }
