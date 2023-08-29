@@ -95,56 +95,57 @@ double simulate(double input) {
   // Simulate for 100 steps
   const size_t N = 100;
   const double dN = N;
-  // for (size_t i = 1; i <= N; i++) {
+  for (size_t i = 1; i <= N; i++) {
     // Generate some control input
     u.v() = input;// + std::sin(T(2.0) * T(M_PI) / T(dN));
-    u.dtheta() = 2.0;// std::sin(T(2.0) * T(M_PI) / T(dN)) * (1.0);// - 2.0 * (i > 50));
+    // u.dtheta() = 2.0;// std::sin(T(2.0) * T(M_PI) / T(dN)) * (1.0);// - 2.0 * (i > 50));
 
-    // // Simulate system
-    x = sys.f(x, u);
+    // // // // Simulate system
+    // x = sys.f(x, u);
 
-    // // Add noise: Our robot move is affected by noise (due to actuator failures)
-    x.x() += systemNoise * 0.05; // 0.05;
-    x.y() += systemNoise * 0.05;
-    x.theta() += systemNoise * 0.05;
+    // // // // Add noise: Our robot move is affected by noise (due to actuator failures)
+    // x.x() += systemNoise * 0.05; // 0.05;
+    // x.y() += systemNoise * 0.05;
+    // x.theta() += systemNoise * 0.05;
 
-    // Predict state for current time-step using the filters
+    // // Predict state for current time-step using the filters
     auto x_pred = predictor.predict(sys, u);
-    auto x_ekf = ekf.predict(sys, u);
-    // auto x_ukf = ukf.predict(sys, u);
+    // u.setZero();
+    // auto x_ekf = ekf.predict(sys, u);
+    // // auto x_ukf = ukf.predict(sys, u);
 
-    // Orientation measurement
-    {
-      // We can measure the orientation every 5th step
-      OrientationMeasurement orientation = om.h(x);
+    // // Orientation measurement
+    // {
+    //   // We can measure the orientation every 5th step
+    //   OrientationMeasurement orientation = om.h(x);
 
-      // Measurement is affected by noise as well
-      orientation.theta() += orientationNoise * 0.05;
+    //   // Measurement is affected by noise as well
+    //   orientation.theta() += orientationNoise * 0.05;
 
-      // Update EKF
-      x_ekf = ekf.update(om, orientation);
+    //   // Update EKF
+    //   x_ekf = ekf.update(om, orientation);
 
-      // Update UKF
-      // x_ukf = ukf.update(om, orientation);
-    }
+    //   // Update UKF
+    //   // x_ukf = ukf.update(om, orientation);
+    // }
 
-    // Position measurement
-    {
-      // We can measure the position every 10th step
-      PositionMeasurement position = pm.h(x);
+    // // Position measurement
+    // {
+    //   // We can measure the position every 10th step
+    //   PositionMeasurement position = pm.h(x);
 
-      // Measurement is affected by noise as well
-      position.d1() += distanceNoise * 0.05;
-      position.d2() += distanceNoise * 0.05;
+    //   // Measurement is affected by noise as well
+    //   position.d1() += distanceNoise * 0.05;
+    //   position.d2() += distanceNoise * 0.05;
 
-      // Update EKF
-      x_ekf = ekf.update(pm, position);
+    //   // Update EKF
+    //   x_ekf = ekf.update(pm, position);
 
-      // Update UKF
-      // x_ukf = ukf.update(pm, position);
-    }
+    //   // Update UKF
+    //   // x_ukf = ukf.update(pm, position);
+    // }
 
-    ekfy_sum += x_ekf.y();
+    ekfy_sum += u.v();//x_ekf.y();
 
   //   // Print to stdout as csv format
   //   std::cout << x.x() << "," << x.y() << "," << x.theta() << "," << x_pred.x()
@@ -152,8 +153,8 @@ double simulate(double input) {
   //             << "," << x_ekf.y() << "," << x_ekf.theta() //<< "," << x_ukf.x()
   //             << std::endl;
   //             //<< "," << x_ukf.y() << "," << x_ukf.theta() << std::endl;
-  // }
-  return ekfy_sum / (double)N;
+  }
+  return ekfy_sum;// / (double)N;
 }
 
 int main(int argc, char **argv) {
