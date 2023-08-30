@@ -52,7 +52,7 @@ namespace Kalman {
         //! System control input type
         using typename Base::Control;
         
-    protected:
+    public:
         //! System model jacobian
         Jacobian<State, State> F;
         //! System model noise jacobian

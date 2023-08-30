@@ -35,7 +35,10 @@ double simulate(double input) {
   Kalman::ExtendedKalmanFilter<State> predictor;
   predictor.init(x);
 
-  auto x_pred = predictor.predict(sys, u);
+  // sys.updateJacobians(x, u);
+  // x = sys.f(x, u);
+  predictor.P  = ( sys.F * predictor.P * sys.F.transpose() ) + ( sys.W * sys.getCovariance() * sys.W.transpose() );
+  // auto x_pred = predictor.predict(sys, u);
 
   return 0.0;
 }

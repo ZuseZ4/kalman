@@ -119,7 +119,6 @@ public:
         return x_;
     }
     
-protected:
     /**
      * @brief Update jacobian matrices for the system state transition function using current state
      *
