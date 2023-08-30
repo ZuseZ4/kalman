@@ -27,9 +27,16 @@ typedef Robot1::Control<T> Control;
 typedef Robot1::SystemModel<T> SystemModel;
 
 double simulate(double input) {
-  SystemModel sys;
-  Kalman::ExtendedKalmanFilter<State> predictor;
-  predictor.P  = ( sys.F * predictor.P * sys.F.transpose() ) + ( sys.W * sys.P * sys.W.transpose() );
+  Kalman::Jacobian<State, State> F;
+  F.setIdentity();
+  F  = ( F * F * F.transpose() ) + ( F * F * F.transpose() );
+
+  SystemModel sys = SystemModel();
+  sys.F.setIdentity();
+  sys.F  = ( sys.F * sys.F * sys.F.transpose() ) + ( sys.F * sys.F * sys.F.transpose() );
+
+  // for (int i = 0; i<= 0; i++){
+  // }
 
   return 0.0;
 }
