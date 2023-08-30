@@ -21,22 +21,27 @@ using namespace KalmanExamples;
 
 typedef float T;
 
-// Some type shortcuts
-typedef Robot1::State<T> State;
-typedef Robot1::Control<T> Control;
-typedef Robot1::SystemModel<T> SystemModel;
+typedef Eigen::Matrix<T, 3, 1> State;
+
+class LinearizedSystemModel
+{
+public:
+    Eigen::Matrix<typename State::Scalar,State::RowsAtCompileTime, State::RowsAtCompileTime> F;
+    
+    /**
+     * Callback function for state-dependent update of Jacobi-matrices F and W before each update step
+     */
+    virtual void updateJacobians( const State& x)
+    {
+        // No update by default
+        (void)x;
+    }
+};
 
 double simulate(double input) {
-  Kalman::Jacobian<State, State> F;
-  F.setIdentity();
-  F  = ( F * F * F.transpose() ) + ( F * F * F.transpose() );
-
-  SystemModel sys = SystemModel();
+  LinearizedSystemModel sys;
   sys.F.setIdentity();
   sys.F  = ( sys.F * sys.F * sys.F.transpose() ) + ( sys.F * sys.F * sys.F.transpose() );
-
-  // for (int i = 0; i<= 0; i++){
-  // }
 
   return 0.0;
 }
