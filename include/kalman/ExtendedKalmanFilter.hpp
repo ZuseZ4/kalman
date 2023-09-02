@@ -107,7 +107,7 @@ namespace Kalman {
         template<class Control, template<class> class CovarianceBase>
         const State& predict( SystemModelType<Control, CovarianceBase>& s, const Control& u )
         {
-            s.updateJacobians( x, u );
+            // s.updateJacobians( x, u );
             
             // predict state
             x = s.f(x, u);

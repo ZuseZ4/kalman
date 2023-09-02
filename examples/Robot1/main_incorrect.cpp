@@ -38,6 +38,12 @@ typedef Robot1::OrientationMeasurement<T> OrientationMeasurement;
 typedef Robot1::PositionMeasurementModel<T> PositionModel;
 typedef Robot1::OrientationMeasurementModel<T> OrientationModel;
 
+void predict(Kalman::ExtendedKalmanFilter<State>& ekf, SystemModel& sys, const Control& u ) {
+    ekf.x = sys.f(ekf.x, u);
+    
+    ekf.P  = ( sys.F * ekf.P * sys.F.transpose() ) + ( sys.W * sys.getCovariance() * sys.W.transpose() );
+}
+
 double simulate(double input) {
   State x;
   x.setZero();
@@ -54,7 +60,10 @@ double simulate(double input) {
     u.v() = input;
     u.dtheta() = 2.0;
 
-    ekf.predict(sys, u);
+    // predict(ekf, sys, u);
+    ekf.x = sys.f(ekf.x, u);
+    
+    ekf.P  = ( sys.F * ekf.P * sys.F.transpose() ) + ( sys.W * sys.getCovariance() * sys.W.transpose() );
 
     ekfy_sum += ekf.x.y();
   }
@@ -65,12 +74,13 @@ double simulate(double input) {
 int main(int argc, char **argv) {
     double fx1 = simulate(1.0);
     double fx2 = simulate(1.1);
-    std::cout << "fx1: " << fx1 << ", x2: " << fx2 << std::endl;
+    printf("x = %f, f(x) = %f\n", 1.0, fx1);
+    printf("x = %f, f(x) = %f\n", 1.1, fx2);
 
-    double df_dfx1 = __enzyme_autodiff((void *)simulate, 1.0);
-    double df_dx2 = __enzyme_autodiff((void *)simulate, 1.1);
-    printf("x = %f, f(x) = %f, f'(x) = %f\n", 1.0, fx1, df_dfx1);
-    printf("x = %f, f(x) = %f, f'(x) = %f\n", 1.1, fx2, df_dx2);
+    // double df_dx1 = __enzyme_autodiff((void *)simulate, 1.0);
+    // double df_dx2 = __enzyme_autodiff((void *)simulate, 1.1);
+    // printf("x = %f, f(x) = %f, f'(x) = %f\n", 1.0, fx1, df_dx1);
+    // printf("x = %f, f(x) = %f, f'(x) = %f\n", 1.1, fx2, df_dx2);
 
     return 0;
 }
