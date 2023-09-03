@@ -66,7 +66,7 @@ namespace Kalman {
         template<class Measurement>
         using KalmanGain = Kalman::KalmanGain<State, Measurement>;
         
-    public:
+    protected:
         //! State Estimate
         using KalmanBase::x;
         //! State Covariance Matrix
@@ -107,7 +107,7 @@ namespace Kalman {
         template<class Control, template<class> class CovarianceBase>
         const State& predict( SystemModelType<Control, CovarianceBase>& s, const Control& u )
         {
-            // s.updateJacobians( x, u );
+            s.updateJacobians( x, u );
             
             // predict state
             x = s.f(x, u);
@@ -135,14 +135,14 @@ namespace Kalman {
             // compute innovation covariance
             Covariance<Measurement> S = ( m.H * P * m.H.transpose() ) + ( m.V * m.getCovariance() * m.V.transpose() );
             
-            // // compute kalman gain
+            // compute kalman gain
             KalmanGain<Measurement> K = P * m.H.transpose() * S.inverse();
             
-            // // UPDATE STATE ESTIMATE AND COVARIANCE
-            // // Update state using computed kalman gain and innovation
+            // UPDATE STATE ESTIMATE AND COVARIANCE
+            // Update state using computed kalman gain and innovation
             x += K * ( z - m.h( x ) );
             
-            // // Update covariance
+            // Update covariance
             P -= K * m.H * P;
             
             // return updated state estimate

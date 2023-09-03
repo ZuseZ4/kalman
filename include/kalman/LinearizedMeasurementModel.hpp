@@ -52,7 +52,7 @@ namespace Kalman {
         //! Measurement vector type
         using typename Base::Measurement;
         
-    public:
+    protected:
         //! Measurement model jacobian
         Jacobian<Measurement, State> H;
         //! Measurement model noise jacobian
@@ -66,7 +66,7 @@ namespace Kalman {
             // No update by default
             (void)x;
         }
-    public:
+    protected:
         LinearizedMeasurementModel()
         {
             H.setIdentity();

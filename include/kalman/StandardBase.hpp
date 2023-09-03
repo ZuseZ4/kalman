@@ -34,7 +34,7 @@ namespace Kalman {
     template<class StateType>
     class StandardBase
     {
-    public:
+    protected:
         //! Covariance
         Covariance<StateType> P;
         

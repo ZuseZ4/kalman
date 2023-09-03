@@ -46,7 +46,7 @@ namespace Kalman {
         //! Type of the state vector
         typedef StateType State;
         
-    public:
+    protected:
         //! Estimated state
         State x;
         
