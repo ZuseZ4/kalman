@@ -135,14 +135,14 @@ namespace Kalman {
             // compute innovation covariance
             Covariance<Measurement> S = ( m.H * P * m.H.transpose() ) + ( m.V * m.getCovariance() * m.V.transpose() );
             
-            // compute kalman gain
+            // // compute kalman gain
             KalmanGain<Measurement> K = P * m.H.transpose() * S.inverse();
             
-            // UPDATE STATE ESTIMATE AND COVARIANCE
-            // Update state using computed kalman gain and innovation
+            // // UPDATE STATE ESTIMATE AND COVARIANCE
+            // // Update state using computed kalman gain and innovation
             x += K * ( z - m.h( x ) );
             
-            // Update covariance
+            // // Update covariance
             P -= K * m.H * P;
             
             // return updated state estimate

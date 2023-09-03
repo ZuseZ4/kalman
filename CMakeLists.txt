@@ -85,7 +85,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --save-temps")
 
 # Examples
 if(KALMAN_BUILD_EXAMPLES)
-  add_executable(example_robot1 "examples/Robot1/main_unreachable.cpp")
+  add_executable(example_robot1 "examples/Robot1/main_original.cpp")
   #target_compile_options(example_robot1 PUBLIC)
   target_link_libraries(example_robot1 PUBLIC LLDEnzymeFlags ${BLAS_LIBRARIES})
 endif()
