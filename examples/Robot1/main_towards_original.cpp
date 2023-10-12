@@ -61,10 +61,10 @@ double simulate(double input) {
   T distanceNoise = 0.25;
 
   double ekfy_sum = 0.0;
-  const size_t N = 20;
+  const size_t N = 100;
   for (size_t i = 1; i <= N; i++) {
     u.v() = input + std::sin( T(2) * T(M_PI) / T(N) );
-    u.dtheta() = std::sin( T(2) * T(M_PI) / T(N) ) * (1 - 2*(i > 10));
+    u.dtheta() = std::sin( T(2) * T(M_PI) / T(N) ) * (1 - 2*(i > 50));
 
     x = sys.f(x, u);
 
