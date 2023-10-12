@@ -83,6 +83,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --save-temps")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --save-temps")
 
 # Enzyme loose type analysis
+
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mllvm -enzyme-loose-types")
 # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mllvm -enzyme-loose-types=1")
 # set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mllvm --enzyme-loose-types=1")
@@ -93,7 +94,7 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=lld -Wl,--d
 
 # Examples
 if(KALMAN_BUILD_EXAMPLES)
-  add_executable(example_robot1 "examples/Robot1/main_original.cpp")
+  add_executable(example_robot1 "examples/Robot1/main_towards_original.cpp")
   #target_compile_options(example_robot1 PUBLIC)
   #add_link_options(-mllvm -enzyme-print -enzyme-loose-types=1)
   target_link_libraries(example_robot1 PUBLIC LLDEnzymeFlags ${BLAS_LIBRARIES})
