@@ -38,7 +38,9 @@ const size_t n = Robot1::n;
 // typedef Robot1::PositionMeasurement<T> PositionMeasurement;
 // typedef Robot1::OrientationMeasurement<T> OrientationMeasurement;
 // typedef Robot1::PositionMeasurementModel<T> PositionModel;
-// typedef Robot1::OrientationMeasurementModel<T> OrientationModel;
+
+typedef Robot1::MeasurementModel<T> MeasurementModel;
+typedef Robot1::Measurement<T> Measurement;
 
 double simulate(double* A) {//Kalman::Jacobian<State, State> A) {
   // init state
@@ -49,7 +51,10 @@ double simulate(double* A) {//Kalman::Jacobian<State, State> A) {
   
   // init control
   Control u;
-  // u[0] = input;
+  u[0] = 0.0;
+
+  // init measurement
+  MeasurementModel mm;
 
   // init system
   SystemModel sys;
@@ -76,7 +81,9 @@ double simulate(double* A) {//Kalman::Jacobian<State, State> A) {
     // propagate state estimate, read out mean
     State x_ekf = ekf.predict(sys, u);
 
-    // no measurements :(
+    // measurement
+    Measurement m = mm.h(x);
+    ekf.update(mm, m);
 
     error_sum += std::pow(x_ekf[0] - x[0], 2); 
     // add a funky P-dependent term to test differentiation
