@@ -65,7 +65,7 @@ double simulate(double input) {
 
     // no measurements :(
 
-    error_sum += (x_ekf[0] - x[0])^2;
+    error_sum += std::pow(x_ekf[0] , 2); // TODO: make this the proper error once we have divergence
 
     std::cout << x[0] << "," << x[1] << "," << x_ekf[0]
               << "," << x_ekf[1] << std::endl;
