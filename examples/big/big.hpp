@@ -1,5 +1,5 @@
-#ifndef KALMAN_EXAMPLES1_ROBOT_SYSTEMMODEL_HPP_
-#define KALMAN_EXAMPLES1_ROBOT_SYSTEMMODEL_HPP_
+#ifndef KALMAN_EXAMPLES1_BIG_SYSTEMMODEL_HPP_
+#define KALMAN_EXAMPLES1_BIG_SYSTEMMODEL_HPP_
 
 #include <kalman/LinearizedSystemModel.hpp>
 #include <kalman/LinearizedMeasurementModel.hpp>
@@ -8,7 +8,7 @@
 
 namespace KalmanExamples
 {
-namespace Robot1
+namespace Big
 {
 
 const size_t n = 4;
@@ -51,10 +51,10 @@ class SystemModel : public Kalman::LinearizedSystemModel<State<T>, Control<T>, C
 {
 public:
     //! State type shortcut definition
-	typedef KalmanExamples::Robot1::State<T> S;
+	typedef KalmanExamples::Big::State<T> S;
     
     //! Control type shortcut definition
-    typedef KalmanExamples::Robot1::Control<T> C;
+    typedef KalmanExamples::Big::Control<T> C;
 
     mutable std::default_random_engine generator;
     mutable std::normal_distribution<T> noise;
@@ -150,10 +150,10 @@ class MeasurementModel : public Kalman::LinearizedMeasurementModel<State<T>, Mea
 {
 public:
     //! State type shortcut definition
-    typedef KalmanExamples::Robot1::State<T> S;
+    typedef KalmanExamples::Big::State<T> S;
     
     //! Measurement type shortcut definition
-    typedef  KalmanExamples::Robot1::Measurement<T> M;
+    typedef  KalmanExamples::Big::Measurement<T> M;
 
     mutable std::default_random_engine generator;
     mutable std::normal_distribution<T> noise;
@@ -192,7 +192,7 @@ public:
     }
 };
 
-} // namespace Robot
-} // namespace KalmanExamples
+}
+}
 
 #endif

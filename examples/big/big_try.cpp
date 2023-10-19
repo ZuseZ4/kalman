@@ -29,18 +29,18 @@ using namespace KalmanExamples;
 
 typedef float T;
 
-typedef Robot1::State<T> State;
-typedef Robot1::Control<T> Control;
-typedef Robot1::SystemModel<T> SystemModel;
+typedef Big::State<T> State;
+typedef Big::Control<T> Control;
+typedef Big::SystemModel<T> SystemModel;
 
-const size_t n = Robot1::n;
+const size_t n = Big::n;
 
-// typedef Robot1::PositionMeasurement<T> PositionMeasurement;
-// typedef Robot1::OrientationMeasurement<T> OrientationMeasurement;
-// typedef Robot1::PositionMeasurementModel<T> PositionModel;
+// typedef Big::PositionMeasurement<T> PositionMeasurement;
+// typedef Big::OrientationMeasurement<T> OrientationMeasurement;
+// typedef Big::PositionMeasurementModel<T> PositionModel;
 
-typedef Robot1::MeasurementModel<T> MeasurementModel;
-typedef Robot1::Measurement<T> Measurement;
+typedef Big::MeasurementModel<T> MeasurementModel;
+typedef Big::Measurement<T> Measurement;
 
 double simulate(double* A) {//Kalman::Jacobian<State, State> A) {
   // init state
