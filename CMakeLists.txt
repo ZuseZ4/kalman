@@ -96,6 +96,7 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=lld -Wl,--d
 if(KALMAN_BUILD_EXAMPLES)
   add_executable(example_robot1 "examples/big/big_try.cpp")
   #target_compile_options(example_robot1 PUBLIC)
+  target_compile_options(example_robot1 PUBLIC -save-temps=obj)
   #add_link_options(-mllvm -enzyme-print -enzyme-loose-types=1)
   target_link_libraries(example_robot1 PUBLIC LLDEnzymeFlags ${BLAS_LIBRARIES})
   # add_compile_options(-mllvm -enzyme-loose-types=1)

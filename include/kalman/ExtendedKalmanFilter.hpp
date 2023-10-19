@@ -110,10 +110,10 @@ namespace Kalman {
         {
             // s.updateJacobians( x, u );
             
-            // predict state
+            // // predict state
             // x = s.f(x, u);
             
-            // predict covariance
+            // // predict covariance
             // P  = ( s.F * P * s.F.transpose() ) + ( s.W * s.getCovariance() * s.W.transpose() );
             
             // return state prediction
