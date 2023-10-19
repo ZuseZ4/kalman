@@ -10,6 +10,8 @@ namespace KalmanExamples
 namespace Robot1
 {
 
+const size_t n = 2;
+
 /**
  * @brief System state vector-type for a 3DOF planar robot
  *
@@ -19,10 +21,10 @@ namespace Robot1
  * @param T Numeric scalar type
  */
 template<typename T>
-class State : public Kalman::Vector<T, 2>
+class State : public Kalman::Vector<T, n>
 {
 public:
-    KALMAN_VECTOR(State, T, 2)
+    KALMAN_VECTOR(State, T, n)
 };
 
 template<typename T>
@@ -58,16 +60,18 @@ public:
 
     T noiseLevel = 0.1;
 
-    // TODO: define A
-
-    SystemModel(): noise(0, 1)
+    SystemModel(const Kalman::Jacobian<State<T>, State<T>> A): noise(0, 1)
     {
-        // TODO: initialize A to e.g. rotation matrix
-        // this->A.setIdentity();
         generator.seed(1);
         auto P = this->getCovariance();
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < n; i++) {
             P(i, i) = std::pow(noiseLevel, 2);
+        }
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                this->F(i, j) = A(i, j);
+            }
         }
     }
     
@@ -93,7 +97,8 @@ public:
 
         x_[0] += noiseLevel * noise(generator);
         x_[1] += noiseLevel;
-        
+
+        // Since we make a purely linear model, F plays a double role as A. 
         return x_;
     }
 
