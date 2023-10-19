@@ -11,7 +11,7 @@ namespace KalmanExamples
 namespace Robot1
 {
 
-const size_t n = 2;
+const size_t n = 4;
 
 /**
  * @brief System state vector-type for a 3DOF planar robot
