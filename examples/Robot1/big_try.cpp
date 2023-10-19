@@ -33,12 +33,14 @@ typedef Robot1::State<T> State;
 typedef Robot1::Control<T> Control;
 typedef Robot1::SystemModel<T> SystemModel;
 
+const size_t n = Robot1::n;
+
 // typedef Robot1::PositionMeasurement<T> PositionMeasurement;
 // typedef Robot1::OrientationMeasurement<T> OrientationMeasurement;
 // typedef Robot1::PositionMeasurementModel<T> PositionModel;
 // typedef Robot1::OrientationMeasurementModel<T> OrientationModel;
 
-double simulate(double input, Kalman::Jacobian<State, State> A) {
+double simulate(double* A) {//Kalman::Jacobian<State, State> A) {
   // init state
   State x;
   x[0] = 1;
@@ -46,10 +48,16 @@ double simulate(double input, Kalman::Jacobian<State, State> A) {
   
   // init control
   Control u;
-  u[0] = input;
+  // u[0] = input;
 
   // init system
-  SystemModel sys(A);
+  SystemModel sys;
+
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+      sys.F(i, j) = A[n * i + j];
+    }
+  }
 
   // init ekf
   Kalman::ExtendedKalmanFilter<State> ekf;
@@ -57,7 +65,7 @@ double simulate(double input, Kalman::Jacobian<State, State> A) {
   ekf.P.setIdentity(); // explicitly set initial covariance, although identity is secretly already the default
 
   double error_sum = 0.0;
-  const size_t N = 50;
+  const size_t N = 5;
 
   for (size_t i = 1; i <= N; i++) {
 
@@ -81,23 +89,40 @@ double simulate(double input, Kalman::Jacobian<State, State> A) {
 
 int main(int argc, char **argv) {
 
-    Kalman::Jacobian<State, State> A;
+    // Kalman::Jacobian<State, State> A;
+    // Kalman::Jacobian<State, State> Adup;
 
-    for (int i = 0; i < Robot1::n; i++) {
-        for (int j = 0; j < Robot1::n; j++) {
-            A(i, j) = 1.0;
+    double A[n * n];
+    double Adup[n * n];
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            // A(i, j) = 1.0;
+            // Adup(i, j) = 0.0;
+            A[n*i + j] = 1.0;
+            Adup[n*i + j] = 0.0;
         }
     }
+   
 
-    double delta = 0.0001;
-    double fx1 = simulate(1.0, A);
-    double fx2 = simulate(1.0 + delta, A);
-    std::cout << "fx1: " << fx1 << ", fx2: " << fx2 << std::endl;
+    double delta = 0.001;
+    // double fx1 = simulate(1.0, A);
+    // double fx2 = simulate(1.0 + delta, A);
+    // std::cout << "fx1: " << fx1 << ", fx2: " << fx2 << std::endl;
 
-    double df_dx1 = __enzyme_autodiff<double>((void *)simulate, enzyme_out, 1.0, enzyme_const, A);
-    double df_dx2 = __enzyme_autodiff<double>((void *)simulate, enzyme_out, 1.0 + delta, enzyme_const, A);
-    printf("x = %f, f(x) = %f, f'(x) = %f, f'(x) fd = %f\n", 1.0, fx1, df_dx1, (fx2 - fx1) / delta);
-    printf("x = %f, f(x) = %f, f'(x) = %f", 1.0 + delta, fx2, df_dx2);
+    // double df_dx1 = __enzyme_autodiff<double>((void *)simulate, enzyme_out, 1.0, enzyme_const, A);
+    // double df_dx2 = __enzyme_autodiff<double>((void *)simulate, enzyme_out, 1.0 + delta, enzyme_const, A);
+    // printf("x = %f, f(x) = %f, f'(x) = %f, f'(x) fd = %f\n", 1.0, fx1, df_dx1, (fx2 - fx1) / delta);
+    // printf("x = %f, f(x) = %f, f'(x) = %f", 1.0 + delta, fx2, df_dx2);
+
+    double fx1 = simulate(A);
+    A[0] += delta;
+    double fx2 = simulate(A);
+    A[0] -= delta;
+    printf("f(A) = %f, f(A + delta) = %f, f'(A)[0, 0] fd = %f\n", fx1,  fx2,(fx2 - fx1) / delta);
+
+    __enzyme_autodiff<double>((void *)simulate, enzyme_dup, A, Adup);
+    printf("Adup[0, 0] = %f, Adup[0, 1] = %f", Adup[0], Adup[1]);
 
     return 0;
 }

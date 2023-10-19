@@ -60,7 +60,8 @@ public:
 
     T noiseLevel = 0.1;
 
-    SystemModel(const Kalman::Jacobian<State<T>, State<T>> A): noise(0, 1)
+    // SystemModel(const Kalman::Jacobian<State<T>, State<T>> A): noise(0, 1)
+    SystemModel(): noise(0, 1)
     {
         generator.seed(1);
         auto P = this->getCovariance();
@@ -68,11 +69,13 @@ public:
             P(i, i) = std::pow(noiseLevel, 2);
         }
 
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                this->F(i, j) = A(i, j);
-            }
-        }
+        // in current interface, let F be set by user.
+
+        // for (int i = 0; i < n; i++) {
+        //     for (int j = 0; j < n; j++) {
+        //         this->F(i, j) = A(i, j);
+        //     }
+        // }
     }
     
     /**
@@ -92,11 +95,15 @@ public:
         S x_;
 
         // TODO: avoid the copy? not so important, since we can at least update jacobians..
-        x_[0] = std::cos(u[0]) * x[0] - std::sin(u[0]) * x[1];
-        x_[1] = std::sin(u[0]) * x[0] + std::cos(u[0]) * x[1]; 
+        // x_ = this->F * x;
+        x_[0] = this->F(0,0) * x[0] + this->F(0, 1) * x[1];
+        x_[1] = this->F(1, 0) * x[0] + this->F(1, 1) * x[1]; 
+        // x_[0] = std::cos(u[0]) * x[0] - std::sin(u[0]) * x[1];
+        // x_[1] = std::sin(u[0]) * x[0] + std::cos(u[0]) * x[1]; 
 
-        x_[0] += noiseLevel * noise(generator);
-        x_[1] += noiseLevel;
+        for (int i = 0; i < n; i++) {
+            x_[i] += noiseLevel * noise(generator);
+        }
 
         // Since we make a purely linear model, F plays a double role as A. 
         return x_;
@@ -105,11 +112,14 @@ public:
     void updateJacobians( const S& x, const C& u )
     {
         // F = df/dx (Jacobian of state transition w.r.t. the state)
+
+        // in current interface, let F be set by user.
+
         // TODO: reconsider unitary, which makes F' F = I in ekf.predict.
-        this->F(0, 0) = std::cos(u[0]); 
-        this->F(0, 1) = -std::sin(u[0]);
-        this->F(1, 0) = std::sin(u[0]);
-        this->F(1, 1) = std::cos(u[0]);
+        // this->F(0, 0) = std::cos(u[0]); 
+        // this->F(0, 1) = -std::sin(u[0]);
+        // this->F(1, 0) = std::sin(u[0]);
+        // this->F(1, 1) = std::cos(u[0]);
 
         // W = df/dw (Jacobian of state transition w.r.t. the noise)
         this->W.setIdentity();
