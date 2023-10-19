@@ -51,9 +51,10 @@ double simulate(double input) {
   // init ekf
   Kalman::ExtendedKalmanFilter<State> ekf;
   ekf.init(x);
+  ekf.P.setIdentity(); // explicitly set initial covariance, although identity is secretly already the default
 
   double error_sum = 0.0;
-  const size_t N = 1;
+  const size_t N = 2;
 
   for (size_t i = 1; i <= N; i++) {
 
@@ -65,7 +66,9 @@ double simulate(double input) {
 
     // no measurements :(
 
-    error_sum += std::pow(x_ekf[0] , 2); // TODO: make this the proper error once we have divergence
+    error_sum += std::pow(x_ekf[0] - x[0], 2); 
+    // add a funky P-dependent term to test differentiation
+    // error_sum += std::pow(ekf.P(0,0), 2); 
 
     std::cout << x[0] << "," << x[1] << "," << x_ekf[0]
               << "," << x_ekf[1] << std::endl;
@@ -75,7 +78,7 @@ double simulate(double input) {
 
 int main(int argc, char **argv) {
 
-    double delta = 0.0001;
+    double delta = 0.01;
     double fx1 = simulate(1.0);
     double fx2 = simulate(1.0 + delta);
     std::cout << "fx1: " << fx1 << ", fx2: " << fx2 << std::endl;

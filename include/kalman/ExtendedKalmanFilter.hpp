@@ -66,7 +66,8 @@ namespace Kalman {
         template<class Measurement>
         using KalmanGain = Kalman::KalmanGain<State, Measurement>;
         
-    protected:
+    // make x and P public for access
+    public:
         //! State Estimate
         using KalmanBase::x;
         //! State Covariance Matrix
