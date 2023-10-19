@@ -43,8 +43,9 @@ const size_t n = Robot1::n;
 double simulate(double* A) {//Kalman::Jacobian<State, State> A) {
   // init state
   State x;
-  x[0] = 1;
-  x[1] = 1;
+  for (int i = 0; i < n; i++) {
+    x[i] = 1;
+  }
   
   // init control
   Control u;
@@ -97,8 +98,6 @@ int main(int argc, char **argv) {
 
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
-            // A(i, j) = 1.0;
-            // Adup(i, j) = 0.0;
             A[n*i + j] = 1.0;
             Adup[n*i + j] = 0.0;
         }
