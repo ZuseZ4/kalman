@@ -52,7 +52,7 @@ double simulate(double input) {
   Kalman::ExtendedKalmanFilter<State> ekf;
   ekf.init(x);
 
-  double ekfy_sum = 0.0;
+  double error_sum = 0.0;
   const size_t N = 1;
 
   for (size_t i = 1; i <= N; i++) {
@@ -65,12 +65,12 @@ double simulate(double input) {
 
     // no measurements :(
 
-    ekfy_sum += x[1];
+    error_sum += (x_ekf[0] - x[0])^2;
 
     std::cout << x[0] << "," << x[1] << "," << x_ekf[0]
               << "," << x_ekf[1] << std::endl;
   }
-  return ekfy_sum / (double)N;
+  return error_sum / (double)N;
 }
 
 int main(int argc, char **argv) {
