@@ -96,9 +96,9 @@ public:
         S x_;
 
         // TODO: avoid the copy? not so important, since we can at least update jacobians..
-        // x_ = this->F * x;
-        x_[0] = this->F(0,0) * x[0] + this->F(0, 1) * x[1];
-        x_[1] = this->F(1, 0) * x[0] + this->F(1, 1) * x[1]; 
+        x_ = this->F * x;
+        // x_[0] = this->F(0,0) * x[0] + this->F(0, 1) * x[1];
+        // x_[1] = this->F(1, 0) * x[0] + this->F(1, 1) * x[1]; 
         // x_[0] = std::cos(u[0]) * x[0] - std::sin(u[0]) * x[1];
         // x_[1] = std::sin(u[0]) * x[0] + std::cos(u[0]) * x[1]; 
 
