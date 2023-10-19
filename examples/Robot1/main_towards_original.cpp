@@ -50,10 +50,8 @@ double simulate(double input) {
   PositionModel pm(-10, -10, 30, 75);
   OrientationModel om;
 
-  Kalman::ExtendedKalmanFilter<State> predictor;
   Kalman::ExtendedKalmanFilter<State> ekf;
 
-  predictor.init(x);
   ekf.init(x);
 
   T systemNoise = 0.1;
@@ -72,9 +70,10 @@ double simulate(double input) {
     x.y() += systemNoise * 0.5;
     x.theta() += systemNoise * 0.5;
 
-    auto x_pred = predictor.predict(sys, u);
     auto x_ekf = ekf.predict(sys, u);
 
+    // Note there are two different updates here! 
+    // This still makes sense, each update is just a Bayesian update after all.
     {
       OrientationMeasurement orientation = om.h(x);
       orientation.theta() = 0.1;
@@ -95,8 +94,7 @@ double simulate(double input) {
 
     ekfy_sum += x_ekf.y();
 
-    std::cout << x.x() << "," << x.y() << "," << x.theta() << "," << x_pred.x()
-              << "," << x_pred.y() << "," << x_pred.theta() << "," << x_ekf.x()
+    std::cout << x.x() << "," << x.y() << "," << x.theta() << "," << x_ekf.x()
               << "," << x_ekf.y() << "," << x_ekf.theta() << std::endl;
   }
   return ekfy_sum / (double)N;
