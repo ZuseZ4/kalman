@@ -79,11 +79,11 @@ double simulate(double* A) {//Kalman::Jacobian<State, State> A) {
     x = sys.f(x, u);
 
     // propagate state estimate, read out mean
-    // State x_ekf = ekf.predict(sys, u);
+    State x_ekf = ekf.predict(sys, u);
 
     // measurement
-    // Measurement m = mm.h(x);
-    // ekf.update(mm, m);
+    Measurement m = mm.h(x);
+    ekf.update(mm, m);
 
     error_sum += std::pow(x[0], 2); 
     // error_sum += std::pow(x_ekf[0] - x[0], 2); 
