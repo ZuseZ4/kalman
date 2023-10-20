@@ -56,15 +56,12 @@ public:
     //! Control type shortcut definition
     typedef KalmanExamples::Big::Control<T> C;
 
-    mutable std::default_random_engine generator;
-    mutable std::normal_distribution<T> noise;
-
     T noiseLevel = 0.1;
 
     // SystemModel(const Kalman::Jacobian<State<T>, State<T>> A): noise(0, 1)
-    SystemModel(): noise(0, 1)
+    SystemModel()//: noise(0, 1)
     {
-        generator.seed(1);
+        // generator.seed(1);
         auto P = this->getCovariance();
         for (int i = 0; i < n; i++) {
             P(i, i) = std::pow(noiseLevel, 2);
@@ -96,6 +93,7 @@ public:
         S x_;
 
         // TODO: avoid the copy? not so important, since we can at least update jacobians..
+        // Since we make a purely linear model, F plays a double role as A. 
         x_ = this->F * x;
 
         // for (int i = 0; i < n; i++) {
@@ -107,10 +105,9 @@ public:
         // }
 
         for (int i = 0; i < n; i++) {
-            x_[i] += noiseLevel * noise(generator);
+            x_[i] += noiseLevel;// * noise(generator);
         }
 
-        // Since we make a purely linear model, F plays a double role as A. 
         return x_;
     }
 
@@ -159,12 +156,12 @@ public:
     //! Measurement type shortcut definition
     typedef  KalmanExamples::Big::Measurement<T> M;
 
-    mutable std::default_random_engine generator;
-    mutable std::normal_distribution<T> noise;
+    // mutable std::default_random_engine generator;
+    // mutable std::normal_distribution<T> noise;
     
-    MeasurementModel(): noise(0, 1)
+    MeasurementModel()//: noise(0, 1)
     {
-        generator.seed(1);
+        // generator.seed(1);
         // Setup jacobians. As these are static, we can define them once
         // and do not need to update them dynamically
         this->H.setIdentity();
@@ -189,7 +186,7 @@ public:
         measurement = x;
 
         for (int i = 0; i < n; i++) {
-            measurement[i] += 0.1 * noise(generator);
+            measurement[i] += 0.1;// * noise(generator);
         }
         
         return measurement;

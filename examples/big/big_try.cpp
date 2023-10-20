@@ -8,7 +8,6 @@
 #include "big.hpp"
 
 #include <kalman/ExtendedKalmanFilter.hpp>
-#include <kalman/UnscentedKalmanFilter.hpp>
 
 #include <iostream>
 #include <random>
