@@ -82,23 +82,13 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DEIGEN_NO_DEBUG")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --save-temps")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --save-temps")
 
-# Enzyme loose type analysis
-
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mllvm -enzyme-loose-types")
-# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mllvm -enzyme-loose-types=1")
-# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mllvm --enzyme-loose-types=1")
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld -Wl,--disable-new-dtags,-mllvm=-load=/home/gridsan/aryag/Enzyme/enzyme/build_debug/Enzyme/LLDEnzyme-16.so,-mllvm=-enzyme-loose-types=1")
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=lld -Wl,--disable-new-dtags,-mllvm=-load=/home/gridsan/aryag/Enzyme/enzyme/build_debug/Enzyme/LLDEnzyme-16.so,-mllvm=-enzyme-loose-types=1")
-
 # Examples
 if(KALMAN_BUILD_EXAMPLES)
   add_executable(example_robot1 "examples/big/big_try.cpp")
   #target_compile_options(example_robot1 PUBLIC)
   target_compile_options(example_robot1 PUBLIC -save-temps=obj)
   #add_link_options(-mllvm -enzyme-print -enzyme-loose-types=1)
-  target_link_libraries(example_robot1 PUBLIC LLDEnzymeFlags ${BLAS_LIBRARIES})
+  target_link_libraries(example_robot1 PUBLIC LLDEnzymeFlags ${BLAS_LIBRARIES} LLDEnzymeLooseTypeFlags)
   # add_compile_options(-mllvm -enzyme-loose-types=1)
 endif()
 
