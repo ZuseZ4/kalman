@@ -120,8 +120,13 @@ namespace Kalman {
             x = s.f(x, u);
             
             // predict covariance
-            auto P2 = P;
-            P  = s.F + P2; //( s.F * P * s.F.transpose() ); //+ ( s.W * s.getCovariance() * s.W.transpose() );
+            // auto P2 = P;
+            P(0, 0) = x[0] * s.F(0, 0);
+            // P  = ( s.F * P * s.F.transpose() ) + ( s.W * s.getCovariance() * s.W.transpose() );
+            // P  = s.F + P2; //( s.F * P * s.F.transpose() ); //+ ( s.W * s.getCovariance() * s.W.transpose() );
+            // P = s.F * P * s.F.transpose();
+            // P  = s.F + P2; //( s.F * P * s.F.transpose() ); //+ ( s.W * s.getCovariance() * s.W.transpose() );
+            // P = P;
             
             // return state prediction
             return this->getState();

@@ -63,6 +63,7 @@ public:
     {
         // generator.seed(1);
         auto P = this->getCovariance();
+        P.setIdentity();
         for (int i = 0; i < n; i++) {
             P(i, i) = std::pow(noiseLevel, 2);
         }

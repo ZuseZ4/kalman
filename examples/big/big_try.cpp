@@ -70,7 +70,7 @@ double simulate(double* A) {//Kalman::Jacobian<State, State> A) {
   ekf.P.setIdentity(); // explicitly set initial covariance, although identity is secretly already the default
 
   double error_sum = 0.0;
-  const size_t N = 5;
+  const size_t N = 5; // if N = 1 then segfault
 
   for (size_t i = 1; i <= N; i++) {
 
