@@ -175,7 +175,7 @@ namespace Kalman {
             // compute kalman gain
             Covariance<Measurement> Sinv = this->invertCovarianceMatrix<Measurement>(S);
             // KalmanGain<Measurement> K = P * m.H.transpose() * S.inverse();
-            KalmanGain<Measurement> K = P * m.H.transpose() * Sinv;//.inverse();
+            KalmanGain<Measurement> K = P * m.H.transpose() * S.inverse();
             
             // UPDATE STATE ESTIMATE AND COVARIANCE
             // Update state using computed kalman gain and innovation

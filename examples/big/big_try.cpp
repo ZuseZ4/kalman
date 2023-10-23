@@ -84,10 +84,10 @@ double simulate(double* A) {//Kalman::Jacobian<State, State> A) {
     Measurement m = mm.h(x);
     ekf.update(mm, m);
 
-    error_sum += std::pow(x[0], 2); 
+    // error_sum += std::pow(x[0], 2); 
     // error_sum += std::pow(x_ekf[0] - x[0], 2); 
     // add a funky P-dependent term to test differentiation
-    // error_sum += std::pow(ekf.P(0,0), 2); 
+    error_sum += std::pow(ekf.P(0,0), 2); 
 
     // std::cout << x[0] << "," << x[1] << "," << x_ekf[0]
     //           << "," << x_ekf[1] << std::endl;
