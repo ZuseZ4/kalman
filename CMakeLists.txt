@@ -17,6 +17,12 @@ if(BLAS_FOUND)
     message("OpenBLAS found.")
 endif(BLAS_FOUND)
 
+# find_package(LAPACKE REQUIRED)
+# if(LAPACKE_FOUND)
+#     message("LAPACKE found.")
+#     message("LAPACKE Libraries: ${LAPACKE_LIBRARIES}")
+# endif()
+
 # TODO: Use VERSION argument to project command after raising the minimum
 # cmake version to 3.0
 set(PROJECT_VERSION_MAJOR 0)
@@ -75,8 +81,8 @@ include_directories(
 # Flags
 set(CMAKE_CXX_FLAGS "${KALMAN_CXX_FLAGS} -Wall -pedantic -g")
 # set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DEIGEN_NO_DEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DEIGEN_NO_DEBUG -DEIGEN_USE_BLAS")
-# set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DEIGEN_NO_DEBUG -DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKE")
+# set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DEIGEN_NO_DEBUG -DEIGEN_USE_BLAS")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DEIGEN_NO_DEBUG -DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKE")
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -no-opaque-pointers ")
 #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Xclang -no-opaque-pointers ")
@@ -90,7 +96,7 @@ if(KALMAN_BUILD_EXAMPLES)
   #target_compile_options(example_robot1 PUBLIC)
   target_compile_options(example_robot1 PUBLIC -save-temps=obj)
   #add_link_options(-mllvm -enzyme-print -enzyme-loose-types=1)
-  target_link_libraries(example_robot1 PUBLIC LLDEnzymeFlags ${BLAS_LIBRARIES} LLDEnzymeLooseTypeFlags)
+  target_link_libraries(example_robot1 PUBLIC LLDEnzymeFlags ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} LLDEnzymeLooseTypeFlags)
   # add_compile_options(-mllvm -enzyme-loose-types=1)
 endif()
 
