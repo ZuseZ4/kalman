@@ -114,13 +114,14 @@ namespace Kalman {
         template<class Control, template<class> class CovarianceBase>
         const State& predict( SystemModelType<Control, CovarianceBase>& s, const Control& u )
         {
-            // s.updateJacobians( x, u );
+            s.updateJacobians( x, u );
             
-            // // predict state
-            // x = s.f(x, u);
+            // predict state
+            x = s.f(x, u);
             
-            // // predict covariance
-            // P  = ( s.F * P * s.F.transpose() ) + ( s.W * s.getCovariance() * s.W.transpose() );
+            // predict covariance
+            auto P2 = P;
+            P  = s.F + P2; //( s.F * P * s.F.transpose() ); //+ ( s.W * s.getCovariance() * s.W.transpose() );
             
             // return state prediction
             return this->getState();
@@ -135,17 +136,17 @@ namespace Kalman {
 
             int *ipiv = new int[n + 1];
             int lwork = n * n;
-            float *work = new float[lwork];
+            double *work = new double[lwork];
             int info;
 
             // Perform LU decomposition
-            sgetrf_(&n, &n, result.data(), &n, ipiv, &info);
+            dgetrf_(&n, &n, result.data(), &n, ipiv, &info);
             if (info != 0) {
                 throw std::runtime_error("LU decomposition failed");
             }
 
             // Perform matrix inversion
-            sgetri_(&n, result.data(), &n, ipiv, work, &lwork, &info);
+            dgetri_(&n, result.data(), &n, ipiv, work, &lwork, &info);
             if (info != 0) {
                 throw std::runtime_error("Matrix inversion failed");
             }
@@ -173,9 +174,11 @@ namespace Kalman {
             Covariance<Measurement> S = ( m.H * P * m.H.transpose() ) + ( m.V * m.getCovariance() * m.V.transpose() );
             
             // compute kalman gain
-            Covariance<Measurement> Sinv = this->invertCovarianceMatrix<Measurement>(S);
+            // Covariance<Measurement> Sinv = this->invertCovarianceMatrix<Measurement>(S);
+            // Covariance<Measurement> Sinv = S.inverse();
+            Covariance<Measurement> Sinv = S;
             // KalmanGain<Measurement> K = P * m.H.transpose() * S.inverse();
-            KalmanGain<Measurement> K = P * m.H.transpose() * S.inverse();
+            KalmanGain<Measurement> K = P * m.H.transpose() * Sinv;//.inverse();
             
             // UPDATE STATE ESTIMATE AND COVARIANCE
             // Update state using computed kalman gain and innovation

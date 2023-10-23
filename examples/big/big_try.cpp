@@ -26,7 +26,7 @@ RT __enzyme_autodiff(void*, Args...);
 
 using namespace KalmanExamples;
 
-typedef float T;
+typedef double T;
 
 typedef Big::State<T> State;
 typedef Big::Control<T> Control;
@@ -105,13 +105,14 @@ int main(int argc, char **argv) {
 
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
-            A[n*i + j] = 1.0;
+            A[n*i + j] = j == i ? 1.5 : 0.0;
             Adup[n*i + j] = 0.0;
         }
     }
    
 
     double delta = 0.001;
+    double delta2 = delta * delta;
     // double fx1 = simulate(1.0, A);
     // double fx2 = simulate(1.0 + delta, A);
     // std::cout << "fx1: " << fx1 << ", fx2: " << fx2 << std::endl;
@@ -127,8 +128,14 @@ int main(int argc, char **argv) {
     A[0] -= delta;
     printf("f(A) = %f, f(A + delta) = %f, f'(A)[0, 0] fd = %f\n", fx1,  fx2,(fx2 - fx1) / delta);
 
-    // __enzyme_autodiff<double>((void *)simulate, enzyme_dup, A, Adup);
-    // printf("Adup[0, 0] = %f, Adup[0, 1] = %f", Adup[0], Adup[1]);
+    fx1 = simulate(A);
+    A[0] += delta2;
+    fx2 = simulate(A);
+    A[0] -= delta2;
+    printf("f(A) = %f, f(A + delta2) = %f, f'(A)[0, 0] fd = %f\n", fx1,  fx2,(fx2 - fx1) / delta2);
+
+    __enzyme_autodiff<double>((void *)simulate, enzyme_dup, A, Adup);
+    printf("Adup[0, 0] = %f, Adup[0, 1] = %f", Adup[0], Adup[1]);
 
     return 0;
 }

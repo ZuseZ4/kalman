@@ -185,9 +185,9 @@ public:
         
         measurement = x;
 
-        for (int i = 0; i < n; i++) {
-            measurement[i] += 0.1;// * noise(generator);
-        }
+        // for (int i = 0; i < n; i++) {
+        //     measurement[i] += 0.1;// * noise(generator);
+        // }
         
         return measurement;
     }
