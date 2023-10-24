@@ -121,8 +121,8 @@ namespace Kalman {
             
             // predict covariance
             // auto P2 = P;
-            P(0, 0) = x[0] * s.F(0, 0);
-            // P  = ( s.F * P * s.F.transpose() ) + ( s.W * s.getCovariance() * s.W.transpose() );
+            // P(0, 0) = x[0] * s.F(0, 0);
+            P  = ( s.F * P * s.F.transpose() ) + ( s.W * s.getCovariance() * s.W.transpose() );
             // P  = s.F + P2; //( s.F * P * s.F.transpose() ); //+ ( s.W * s.getCovariance() * s.W.transpose() );
             // P = s.F * P * s.F.transpose();
             // P  = s.F + P2; //( s.F * P * s.F.transpose() ); //+ ( s.W * s.getCovariance() * s.W.transpose() );
