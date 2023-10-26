@@ -115,46 +115,30 @@ int main(int argc, char **argv) {
 
     double A[n * n];
     double Adup[n * n];
+    double Adup_fd[n * n];
 
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             A[n*i + j] = j == i ? 1.5 : 0.0;
             Adup[n*i + j] = 0.0;
+            Adup_fd[n*i + j] = 0.0;
         }
     }
 
     double delta = 0.001;
     double delta2 = delta * delta;
 
-    double fx1 = simulate(A);
-    A[0] += delta;
-    double fx2 = simulate(A);
-    A[0] -= delta;
-    printf("f(A) = %f, f(A + delta) = %f, f'(A)[0] fd = %f\n", fx1,  fx2,(fx2 - fx1) / delta);
+    double fx = simulate(A);
+    printf("f(A) = %f\n", fx);
 
-    fx1 = simulate(A);
-    A[0] += delta2;
-    fx2 = simulate(A);
-    A[0] -= delta2;
-    printf("f(A) = %f, f(A + delta2) = %f, f'(A)[0] fd = %f\n", fx1,  fx2,(fx2 - fx1) / delta2);
+    for (int i = 0; i < n * n; i++) {
+        A[0] += delta;
+        double fx2 = simulate(A);
+        A[0] -= delta;
+        Adup_fd[i] = (fx2 - fx) / delta;
+    }
 
-    fx1 = simulate(A);
-    A[1] += delta;
-    fx2 = simulate(A);
-    A[1] -= delta;
-    printf("f(A) = %f, f(A + delta) = %f, f'(A)[1] fd = %f\n", fx1,  fx2,(fx2 - fx1) / delta);
-
-    fx1 = simulate(A);
-    A[2] += delta;
-    fx2 = simulate(A);
-    A[2] -= delta;
-    printf("f(A) = %f, f(A + delta) = %f, f'(A)[2] fd = %f\n", fx1,  fx2,(fx2 - fx1) / delta);
-
-    fx1 = simulate(A);
-    A[10] += delta;
-    fx2 = simulate(A);
-    A[10] -= delta;
-    printf("f(A) = %f, f(A + delta) = %f, f'(A)[10] fd = %f\n", fx1,  fx2,(fx2 - fx1) / delta);
+    printf("Adup_fd[0] = %f, Adup_fd[1] = %f, Adup_fd[2] = %f, Adup_fd[10] = %f\n", Adup_fd[0], Adup_fd[1], Adup_fd[2], Adup_fd[10]);
 
     // __enzyme_autodiff<double>((void *)simulate, enzyme_dup, A, Adup);
     // printf("Adup[0] = %f, Adup[1] = %f, Adup[2] = %f, Adup[10] = %f", Adup[0], Adup[1], Adup[2], Adup[10]);
