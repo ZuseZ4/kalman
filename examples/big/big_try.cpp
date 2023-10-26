@@ -69,10 +69,6 @@ double simulate(double* A) {//Kalman::Jacobian<State, State> A) {
   ekf.init(x);
   ekf.P.setIdentity(); // explicitly set initial covariance, although identity is secretly already the default
 
-  double error_sum = 0.0;
-  const size_t N = 5; // if N = 1 then segfault
-
-  for (size_t i = 1; i <= N; i++) {
 
     // propagate hidden state
     x = sys.f(x, u);
@@ -87,12 +83,10 @@ double simulate(double* A) {//Kalman::Jacobian<State, State> A) {
     // error_sum += std::pow(x[0], 2); 
     // error_sum += std::pow(x_ekf[0] - x[0], 2); 
     // add a funky P-dependent term to test differentiation
-    error_sum += std::pow(ekf.P(0,0), 2); 
+    return m(0);//ekf.P(0,0);//std::pow(ekf.P(0,0), 2); 
 
     // std::cout << x[0] << "," << x[1] << "," << x_ekf[0]
     //           << "," << x_ekf[1] << std::endl;
-  }
-  return error_sum / (double)N;
 }
 
 int main(int argc, char **argv) {
@@ -123,6 +117,10 @@ int main(int argc, char **argv) {
     // printf("x = %f, f(x) = %f, f'(x) = %f", 1.0 + delta, fx2, df_dx2);
 
     double fx1 = simulate(A);
+    printf("fx1=%f\n", fx1);
+    __enzyme_autodiff<double>((void *)simulate, enzyme_dup, A, Adup);
+    printf("Adup[0] = %f, Adup[1] = %f, Adup[2] = %f, Adup[10] = %f", Adup[0], Adup[1], Adup[2], Adup[10]);
+    /*
     A[0] += delta;
     double fx2 = simulate(A);
     A[0] -= delta;
@@ -152,8 +150,8 @@ int main(int argc, char **argv) {
     A[10] -= delta;
     printf("f(A) = %f, f(A + delta) = %f, f'(A)[10] fd = %f\n", fx1,  fx2,(fx2 - fx1) / delta);
 
-    __enzyme_autodiff<double>((void *)simulate, enzyme_dup, A, Adup);
     printf("Adup[0] = %f, Adup[1] = %f, Adup[2] = %f, Adup[10] = %f", Adup[0], Adup[1], Adup[2], Adup[10]);
 
+    */
     return 0;
 }
