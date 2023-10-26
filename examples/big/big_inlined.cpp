@@ -34,14 +34,10 @@ typedef Big::SystemModel<T> SystemModel;
 
 const size_t n = Big::n;
 
-// typedef Big::PositionMeasurement<T> PositionMeasurement;
-// typedef Big::OrientationMeasurement<T> OrientationMeasurement;
-// typedef Big::PositionMeasurementModel<T> PositionModel;
-
 typedef Big::MeasurementModel<T> MeasurementModel;
 typedef Big::Measurement<T> Measurement;
 
-double simulate(double* A) {//Kalman::Jacobian<State, State> A) {
+double simulate(double* A) {
   // init state
   State x;
   for (int i = 0; i < n; i++) {
@@ -65,9 +61,11 @@ double simulate(double* A) {//Kalman::Jacobian<State, State> A) {
   }
 
   // init ekf
-  Kalman::ExtendedKalmanFilter<State> ekf;
-  ekf.init(x);
-  ekf.P.setIdentity(); // explicitly set initial covariance, although identity is secretly already the default
+  State x_ekf;
+  Eigen::Matrix<typename State::Scalar, State::RowsAtCompileTime, State::RowsAtCompileTime> P;
+  x_ekf.setZero();
+  P.setIdentity();
+
 
   double error_sum = 0.0;
   const size_t N = 5; // if N = 1 then segfault
@@ -78,16 +76,18 @@ double simulate(double* A) {//Kalman::Jacobian<State, State> A) {
     x = sys.f(x, u);
 
     // propagate state estimate, read out mean
-    State x_ekf = ekf.predict(sys, u);
+    sys.updateJacobians( x, u );
+    x_ekf = sys.f(x, u);
+    P  = ( sys.F * P * sys.F.transpose() ) + ( sys.W * sys.getCovariance() * sys.W.transpose() );
 
     // measurement
-    Measurement m = mm.h(x);
-    ekf.update(mm, m);
+    // Measurement m = mm.h(x);
+    // ekf.update(mm, m);
 
     // error_sum += std::pow(x[0], 2); 
     // error_sum += std::pow(x_ekf[0] - x[0], 2); 
     // add a funky P-dependent term to test differentiation
-    error_sum += std::pow(ekf.P(0,0), 2); 
+    error_sum += std::pow(P(0,0), 2); 
 
     // std::cout << x[0] << "," << x[1] << "," << x_ekf[0]
     //           << "," << x_ekf[1] << std::endl;
@@ -152,8 +152,8 @@ int main(int argc, char **argv) {
     A[10] -= delta;
     printf("f(A) = %f, f(A + delta) = %f, f'(A)[10] fd = %f\n", fx1,  fx2,(fx2 - fx1) / delta);
 
-    __enzyme_autodiff<double>((void *)simulate, enzyme_dup, A, Adup);
-    printf("Adup[0] = %f, Adup[1] = %f, Adup[2] = %f, Adup[10] = %f", Adup[0], Adup[1], Adup[2], Adup[10]);
+    // __enzyme_autodiff<double>((void *)simulate, enzyme_dup, A, Adup);
+    // printf("Adup[0] = %f, Adup[1] = %f, Adup[2] = %f, Adup[10] = %f", Adup[0], Adup[1], Adup[2], Adup[10]);
 
     return 0;
 }

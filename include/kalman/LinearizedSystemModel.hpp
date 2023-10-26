@@ -56,7 +56,7 @@ namespace Kalman {
         //! System model jacobian. 
         // Let it be user modifiable as an interface for now.
         Jacobian<State, State> F;
-    protected:
+
         //! System model noise jacobian
         Jacobian<State, State> W;
         
