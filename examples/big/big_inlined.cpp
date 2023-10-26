@@ -159,8 +159,8 @@ int main(int argc, char **argv) {
     A[10] -= delta;
     printf("f(A) = %f, f(A + delta) = %f, f'(A)[10] fd = %f\n", fx1,  fx2,(fx2 - fx1) / delta);
 
-    // __enzyme_autodiff<double>((void *)simulate, enzyme_dup, A, Adup);
-    // printf("Adup[0] = %f, Adup[1] = %f, Adup[2] = %f, Adup[10] = %f", Adup[0], Adup[1], Adup[2], Adup[10]);
+    __enzyme_autodiff<double>((void *)simulate, enzyme_dup, A, Adup);
+    printf("Adup[0] = %f, Adup[1] = %f, Adup[2] = %f, Adup[10] = %f", Adup[0], Adup[1], Adup[2], Adup[10]);
 
     return 0;
 }
