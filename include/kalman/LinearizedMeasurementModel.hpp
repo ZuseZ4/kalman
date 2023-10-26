@@ -52,7 +52,6 @@ namespace Kalman {
         //! Measurement vector type
         using typename Base::Measurement;
         
-    protected:
         //! Measurement model jacobian
         Jacobian<Measurement, State> H;
         //! Measurement model noise jacobian

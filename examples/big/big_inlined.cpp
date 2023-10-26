@@ -37,6 +37,8 @@ const size_t n = Big::n;
 typedef Big::MeasurementModel<T> MeasurementModel;
 typedef Big::Measurement<T> Measurement;
 
+typedef Eigen::Matrix<State::Scalar, State::RowsAtCompileTime, State::RowsAtCompileTime> EigenSquare;
+
 double simulate(double* A) {
   // init state
   State x;
@@ -62,7 +64,7 @@ double simulate(double* A) {
 
   // init ekf
   State x_ekf;
-  Eigen::Matrix<typename State::Scalar, State::RowsAtCompileTime, State::RowsAtCompileTime> P;
+  EigenSquare P;
   x_ekf.setZero();
   P.setIdentity();
 
@@ -75,18 +77,23 @@ double simulate(double* A) {
     // propagate hidden state
     x = sys.f(x, u);
 
-    // propagate state estimate, read out mean
+    // ekf predict
     sys.updateJacobians( x, u );
     x_ekf = sys.f(x, u);
     P  = ( sys.F * P * sys.F.transpose() ) + ( sys.W * sys.getCovariance() * sys.W.transpose() );
 
     // measurement
-    // Measurement m = mm.h(x);
-    // ekf.update(mm, m);
+    Measurement m = mm.h(x);
 
-    // error_sum += std::pow(x[0], 2); 
-    // error_sum += std::pow(x_ekf[0] - x[0], 2); 
-    // add a funky P-dependent term to test differentiation
+    // ekf update
+    EigenSquare S = ( mm.H * P * mm.H.transpose() ) + ( mm.V * mm.getCovariance() * mm.V.transpose() );
+    // EigenSquare Sinv = this->invertCovarianceMatrix<Measurement>(S);
+    // EigenSquare Sinv = S.inverse();
+    EigenSquare Sinv = S;
+    EigenSquare K = P * mm.H.transpose() * Sinv;//.inverse();
+    x_ekf += K * ( m - mm.h( x_ekf ) );
+    P -= K * mm.H * P;
+            
     error_sum += std::pow(P(0,0), 2); 
 
     // std::cout << x[0] << "," << x[1] << "," << x_ekf[0]
