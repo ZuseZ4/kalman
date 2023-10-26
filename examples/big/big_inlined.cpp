@@ -78,7 +78,7 @@ double simulate(double* A) {
   P.setIdentity();
 
   double error_sum = 0.0;
-  const size_t N = 5; // if N = 1 then segfault
+  const size_t N = 2;
 
   for (size_t i = 1; i <= N; i++) {
 
@@ -100,7 +100,7 @@ double simulate(double* A) {
 
     // ekf update
     EigenSquare S = ( H * P * H.transpose() ) + ( V * P_meas * V.transpose() );
-    EigenSquare Sinv = S.inverse();
+    EigenSquare Sinv = S;//.inverse();
     EigenSquare K = P * H.transpose() * Sinv;
     x_ekf += K * ( m - x_ekf );
     P -= K * H * P;
@@ -140,8 +140,8 @@ int main(int argc, char **argv) {
 
     printf("Adup_fd[0] = %f, Adup_fd[1] = %f, Adup_fd[2] = %f, Adup_fd[10] = %f\n", Adup_fd[0], Adup_fd[1], Adup_fd[2], Adup_fd[10]);
 
-    // __enzyme_autodiff<double>((void *)simulate, enzyme_dup, A, Adup);
-    // printf("Adup[0] = %f, Adup[1] = %f, Adup[2] = %f, Adup[10] = %f", Adup[0], Adup[1], Adup[2], Adup[10]);
+    __enzyme_autodiff<double>((void *)simulate, enzyme_dup, A, Adup);
+    printf("Adup[0] = %f, Adup[1] = %f, Adup[2] = %f, Adup[10] = %f", Adup[0], Adup[1], Adup[2], Adup[10]);
 
     return 0;
 }
