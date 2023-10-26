@@ -5,15 +5,12 @@
 
 #define EIGEN_USE_BLAS
 
-#include "big.hpp"
-
-#include <kalman/ExtendedKalmanFilter.hpp>
-
 #include <iostream>
 #include <random>
 #include <chrono>
 
 #include <Eigen/Core>
+#include <Eigen/Dense>
 extern int enzyme_dup;
 extern int enzyme_dupnoneed;
 extern int enzyme_out;
@@ -24,18 +21,12 @@ void __enzyme_autodiff(...);
 template<typename RT, typename... Args>
 RT __enzyme_autodiff(void*, Args...);
 
-using namespace KalmanExamples;
+const size_t n = 10;
 
 typedef double T;
-
-typedef Big::State<T> State;
-typedef Big::Control<T> Control;
-typedef Big::SystemModel<T> SystemModel;
-
-const size_t n = Big::n;
-
-typedef Big::MeasurementModel<T> MeasurementModel;
-typedef Big::Measurement<T> Measurement;
+typedef Eigen::Matrix<T, n, 1> State;
+typedef Eigen::Matrix<T, 1, 1> Control;
+typedef Eigen::Matrix<T, n, 1> Measurement;
 
 typedef Eigen::Matrix<State::Scalar, State::RowsAtCompileTime, State::RowsAtCompileTime> EigenSquare;
 
@@ -51,15 +42,23 @@ double simulate(double* A) {
   u[0] = 0.0;
 
   // init measurement
-  MeasurementModel mm;
+  EigenSquare H;
+  EigenSquare V;
+  EigenSquare P_meas;
+  H.setIdentity();
+  V.setIdentity();
+  P_meas.setIdentity();
+
+  T noiseLevel_meas = 0.1;
+  P_meas *= noiseLevel_meas;
 
   // init system
   EigenSquare W;
   EigenSquare F;
   EigenSquare P_sys;
-  W.setIdentity();
-  F.setIdentity();
-  P_sys.setIdentity();
+  W.setZero();
+  F.setZero();
+  P_sys.setZero();
 
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
@@ -67,9 +66,9 @@ double simulate(double* A) {
     }
   }
 
-  T noiseLevel = 0.1;
+  T noiseLevel_sys = 0.1;
   for (int i = 0; i < n; i++) {
-    P_sys(i, i) = std::pow(noiseLevel, 2);
+    P_sys(i, i) = std::pow(noiseLevel_sys, 2);
   }
 
   // init ekf
@@ -86,7 +85,7 @@ double simulate(double* A) {
     // propagate hidden state
     x = F * x; 
     for (int j = 0; j < n; j++) {
-        x[i] += noiseLevel;// * noise(generator)
+        x[i] += noiseLevel_sys;// * noise(generator)
     }
 
     // ekf predict
@@ -94,27 +93,25 @@ double simulate(double* A) {
     P  = ( F * P * F.transpose() ) + ( W * P_sys * W.transpose() );
 
     // measurement
-    Measurement m = mm.h(x);
+    Measurement m = x;
+    for (int j = 0; j < n; j++) {
+        m[i] += noiseLevel_meas;// * noise(generator)
+    }
 
     // ekf update
-    EigenSquare S = ( mm.H * P * mm.H.transpose() ) + ( mm.V * mm.getCovariance() * mm.V.transpose() );
-    EigenSquare Sinv = S;
-    EigenSquare K = P * mm.H.transpose() * Sinv;//.inverse();
-    x_ekf += K * ( m - mm.h( x_ekf ) );
-    P -= K * mm.H * P;
+    EigenSquare S = ( H * P * H.transpose() ) + ( V * P_meas * V.transpose() );
+    EigenSquare Sinv = S.inverse();
+    EigenSquare K = P * H.transpose() * Sinv;
+    x_ekf += K * ( m - x_ekf );
+    P -= K * H * P;
             
     error_sum += std::pow(P(0,0), 2); 
-
-    // std::cout << x[0] << "," << x[1] << "," << x_ekf[0]
-    //           << "," << x_ekf[1] << std::endl;
   }
+
   return error_sum / (double)N;
 }
 
 int main(int argc, char **argv) {
-
-    // Kalman::Jacobian<State, State> A;
-    // Kalman::Jacobian<State, State> Adup;
 
     double A[n * n];
     double Adup[n * n];
