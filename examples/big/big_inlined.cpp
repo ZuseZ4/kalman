@@ -54,12 +54,22 @@ double simulate(double* A) {
   MeasurementModel mm;
 
   // init system
-  SystemModel sys;
+  EigenSquare W;
+  EigenSquare F;
+  EigenSquare P_sys;
+  W.setIdentity();
+  F.setIdentity();
+  P_sys.setIdentity();
 
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
-      sys.F(i, j) = A[n * i + j];
+      F(i, j) = A[n * i + j];
     }
+  }
+
+  T noiseLevel = 0.1;
+  for (int i = 0; i < n; i++) {
+    P_sys(i, i) = std::pow(noiseLevel, 2);
   }
 
   // init ekf
@@ -68,27 +78,26 @@ double simulate(double* A) {
   x_ekf.setZero();
   P.setIdentity();
 
-
   double error_sum = 0.0;
   const size_t N = 5; // if N = 1 then segfault
 
   for (size_t i = 1; i <= N; i++) {
 
     // propagate hidden state
-    x = sys.f(x, u);
+    x = F * x; 
+    for (int j = 0; j < n; j++) {
+        x[i] += noiseLevel;// * noise(generator)
+    }
 
     // ekf predict
-    sys.updateJacobians( x, u );
-    x_ekf = sys.f(x, u);
-    P  = ( sys.F * P * sys.F.transpose() ) + ( sys.W * sys.getCovariance() * sys.W.transpose() );
+    x_ekf = F * x_ekf; 
+    P  = ( F * P * F.transpose() ) + ( W * P_sys * W.transpose() );
 
     // measurement
     Measurement m = mm.h(x);
 
     // ekf update
     EigenSquare S = ( mm.H * P * mm.H.transpose() ) + ( mm.V * mm.getCovariance() * mm.V.transpose() );
-    // EigenSquare Sinv = this->invertCovarianceMatrix<Measurement>(S);
-    // EigenSquare Sinv = S.inverse();
     EigenSquare Sinv = S;
     EigenSquare K = P * mm.H.transpose() * Sinv;//.inverse();
     x_ekf += K * ( m - mm.h( x_ekf ) );
@@ -116,18 +125,9 @@ int main(int argc, char **argv) {
             Adup[n*i + j] = 0.0;
         }
     }
-   
 
     double delta = 0.001;
     double delta2 = delta * delta;
-    // double fx1 = simulate(1.0, A);
-    // double fx2 = simulate(1.0 + delta, A);
-    // std::cout << "fx1: " << fx1 << ", fx2: " << fx2 << std::endl;
-
-    // double df_dx1 = __enzyme_autodiff<double>((void *)simulate, enzyme_out, 1.0, enzyme_const, A);
-    // double df_dx2 = __enzyme_autodiff<double>((void *)simulate, enzyme_out, 1.0 + delta, enzyme_const, A);
-    // printf("x = %f, f(x) = %f, f'(x) = %f, f'(x) fd = %f\n", 1.0, fx1, df_dx1, (fx2 - fx1) / delta);
-    // printf("x = %f, f(x) = %f, f'(x) = %f", 1.0 + delta, fx2, df_dx2);
 
     double fx1 = simulate(A);
     A[0] += delta;
@@ -159,8 +159,8 @@ int main(int argc, char **argv) {
     A[10] -= delta;
     printf("f(A) = %f, f(A + delta) = %f, f'(A)[10] fd = %f\n", fx1,  fx2,(fx2 - fx1) / delta);
 
-    __enzyme_autodiff<double>((void *)simulate, enzyme_dup, A, Adup);
-    printf("Adup[0] = %f, Adup[1] = %f, Adup[2] = %f, Adup[10] = %f", Adup[0], Adup[1], Adup[2], Adup[10]);
+    // __enzyme_autodiff<double>((void *)simulate, enzyme_dup, A, Adup);
+    // printf("Adup[0] = %f, Adup[1] = %f, Adup[2] = %f, Adup[10] = %f", Adup[0], Adup[1], Adup[2], Adup[10]);
 
     return 0;
 }
