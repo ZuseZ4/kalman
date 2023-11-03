@@ -35,7 +35,7 @@ double simulate(double* A) {
   P.setIdentity();
 
   // ekf predict
-  P  = ( P * P * P.transpose() ) + ( P * P * P.transpose() );
+  P  = ( P * P * P.transpose() );// + ( P * P * P.transpose() );
   // P = ( P * P * P.transpose() ) + ( P * P * P.transpose() );
 
   return 0.0;
