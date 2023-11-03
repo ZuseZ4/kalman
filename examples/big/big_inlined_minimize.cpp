@@ -73,23 +73,16 @@ double simulate(double* A) {
   P.setIdentity();
 
   double error_sum = 0.0;
-  const size_t N = 2;
 
   // ekf predict
   x_ekf = F * x_ekf; 
   P  = ( F * P * F.transpose() ) + ( W * P_sys * W.transpose() );
 
-  // measurement
-  Measurement m = x_ekf;
-
   // ekf update
   EigenSquare S = ( H * P * H.transpose() ) + ( V * P_meas * V.transpose() );
-  EigenSquare Sinv = S;//.inverse();
-  EigenSquare K = P * H.transpose() * Sinv;
-  x_ekf += K * ( m - x_ekf );
-  P -= K * H * P;
+  EigenSquare K = P * H.transpose() * S;
 
-  return error_sum / (double)N;
+  return error_sum;
 }
 
 int main(int argc, char **argv) {
