@@ -34,6 +34,7 @@ double simulate(double* A) {
   EigenSquare P;
   P.setIdentity();
   P = P * P * P.transpose();
+  // P = P * P * P.transpose(); // uncomment for lascl 9 error
   return 0.0;
 }
 
