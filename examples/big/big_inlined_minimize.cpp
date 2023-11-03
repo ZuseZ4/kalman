@@ -33,11 +33,7 @@ typedef Eigen::Matrix<State::Scalar, State::RowsAtCompileTime, State::RowsAtComp
 double simulate(double* A) {
   EigenSquare P;
   P.setIdentity();
-
-  // ekf predict
-  P  = ( P * P * P.transpose() );// + ( P * P * P.transpose() );
-  // P = ( P * P * P.transpose() ) + ( P * P * P.transpose() );
-
+  P = P * P * P.transpose();
   return 0.0;
 }
 
