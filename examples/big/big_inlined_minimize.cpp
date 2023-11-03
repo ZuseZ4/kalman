@@ -75,12 +75,12 @@ double simulate(double* A) {
   double error_sum = 0.0;
 
   // ekf predict
-  x_ekf = F * x_ekf; 
-  P  = ( F * P * F.transpose() ) + ( W * P_sys * W.transpose() );
+  x_ekf = P * x_ekf; 
+  P  = ( P * P * P.transpose() ) + ( P * P * P.transpose() );
 
   // ekf update
-  EigenSquare S = ( H * P * H.transpose() ) + ( V * P_meas * V.transpose() );
-  EigenSquare K = P * H.transpose() * S;
+  EigenSquare S = ( P * P * P.transpose() ) + ( P * P * P.transpose() );
+  EigenSquare K = P * P.transpose() * P;
 
   return error_sum;
 }
