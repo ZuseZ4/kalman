@@ -42,12 +42,8 @@ double simulate(double* A) {
   double error_sum = 0.0;
 
   // ekf predict
-  x_ekf = P * x_ekf; 
   P  = ( P * P * P.transpose() ) + ( P * P * P.transpose() );
-
-  // ekf update
-  EigenSquare S = ( P * P * P.transpose() ) + ( P * P * P.transpose() );
-  // EigenSquare K = P * P.transpose() * P;
+  P = ( P * P * P.transpose() ) + ( P * P * P.transpose() );
 
   return error_sum;
 }
