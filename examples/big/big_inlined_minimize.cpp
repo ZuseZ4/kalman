@@ -33,40 +33,7 @@ typedef Eigen::Matrix<State::Scalar, State::RowsAtCompileTime, State::RowsAtComp
 double simulate(double* A) {
   // init state
   State x;
-  for (int i = 0; i < n; i++) {
-    x[i] = 1;
-  }
   
-  // init control
-  Control u;
-  u[0] = 0.0;
-
-  // init measurement
-  EigenSquare H;
-  EigenSquare V;
-  EigenSquare P_meas;
-  H.setIdentity();
-  V.setIdentity();
-  P_meas.setIdentity();
-
-  T noiseLevel_meas = 0.1;
-  P_meas *= noiseLevel_meas;
-
-  // init system
-  EigenSquare W;
-  EigenSquare F;
-  EigenSquare P_sys;
-  W.setZero();
-  F.setZero();
-  P_sys.setZero();
-
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < n; j++) {
-      F(i, j) = A[n * i + j];
-    }
-  }
-
-  // init ekf
   State x_ekf;
   EigenSquare P;
   x_ekf.setZero();
@@ -80,7 +47,7 @@ double simulate(double* A) {
 
   // ekf update
   EigenSquare S = ( P * P * P.transpose() ) + ( P * P * P.transpose() );
-  EigenSquare K = P * P.transpose() * P;
+  // EigenSquare K = P * P.transpose() * P;
 
   return error_sum;
 }
