@@ -85,7 +85,7 @@ double simulate(double* A) {
     // propagate hidden state
     x = F * x; 
     for (int j = 0; j < n; j++) {
-        x[i] += noiseLevel_sys;// * noise(generator)
+        x[j] += noiseLevel_sys;// * noise(generator)
     }
 
     // ekf predict
@@ -95,7 +95,7 @@ double simulate(double* A) {
     // measurement
     Measurement m = x;
     for (int j = 0; j < n; j++) {
-        m[i] += noiseLevel_meas;// * noise(generator)
+        m[j] += noiseLevel_meas;// * noise(generator)
     }
 
     // ekf update

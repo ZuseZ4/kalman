@@ -66,11 +66,6 @@ double simulate(double* A) {
     }
   }
 
-  T noiseLevel_sys = 0.1;
-  for (int i = 0; i < n; i++) {
-    P_sys(i, i) = std::pow(noiseLevel_sys, 2);
-  }
-
   // init ekf
   State x_ekf;
   EigenSquare P;
@@ -80,33 +75,19 @@ double simulate(double* A) {
   double error_sum = 0.0;
   const size_t N = 2;
 
-  // for (size_t i = 1; i <= N; i++) {
+  // ekf predict
+  x_ekf = F * x_ekf; 
+  P  = ( F * P * F.transpose() ) + ( W * P_sys * W.transpose() );
 
-    // propagate hidden state
-    x = F * x; 
-    // for (int j = 0; j < n; j++) {
-    //     x[j] += noiseLevel_sys;// * noise(generator)
-    // }
+  // measurement
+  Measurement m = x_ekf;
 
-    // ekf predict
-    x_ekf = F * x_ekf; 
-    P  = ( F * P * F.transpose() ) + ( W * P_sys * W.transpose() );
-
-    // measurement
-    Measurement m = x;
-    // for (int j = 0; j < n; j++) {
-    //     m[j] += noiseLevel_meas;// * noise(generator)
-    // }
-
-    // ekf update
-    EigenSquare S = ( H * P * H.transpose() ) + ( V * P_meas * V.transpose() );
-    EigenSquare Sinv = S;//.inverse();
-    EigenSquare K = P * H.transpose() * Sinv;
-    x_ekf += K * ( m - x_ekf );
-    P -= K * H * P;
-            
-    // error_sum += std::pow(P(0,0), 2); 
-  // }
+  // ekf update
+  EigenSquare S = ( H * P * H.transpose() ) + ( V * P_meas * V.transpose() );
+  EigenSquare Sinv = S;//.inverse();
+  EigenSquare K = P * H.transpose() * Sinv;
+  x_ekf += K * ( m - x_ekf );
+  P -= K * H * P;
 
   return error_sum / (double)N;
 }

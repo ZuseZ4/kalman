@@ -92,7 +92,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --save-temps")
 
 # Examples
 if(KALMAN_BUILD_EXAMPLES)
-  add_executable(example_robot1 "examples/big/big_inlined.cpp")
+  add_executable(example_robot1 "examples/big/big_inlined_minimize.cpp")
   #target_compile_options(example_robot1 PUBLIC)
   target_compile_options(example_robot1 PUBLIC -save-temps=obj)
   #add_link_options(-mllvm -enzyme-print -enzyme-loose-types=1)
