@@ -9,8 +9,8 @@
 #include <random>
 #include <chrono>
 
-#include <Eigen/Core>
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Dense>
 extern int enzyme_dup;
 extern int enzyme_dupnoneed;
 extern int enzyme_out;
@@ -32,83 +32,40 @@ typedef Eigen::Matrix<State::Scalar, State::RowsAtCompileTime, State::RowsAtComp
 
 double simulate(double* A) {
   // init state
-  State x;
-  for (int i = 0; i < n; i++) {
-    x[i] = 1;
-  }
-  
-  // init control
-  Control u;
-  u[0] = 0.0;
-
   // init measurement
   EigenSquare H;
-  EigenSquare V;
   EigenSquare P_meas;
   H.setIdentity();
-  V.setIdentity();
   P_meas.setIdentity();
 
-  T noiseLevel_meas = 0.1;
-  P_meas *= noiseLevel_meas;
+  // P_meas *= .01;
 
   // init system
-  EigenSquare W;
   EigenSquare F;
   EigenSquare P_sys;
-  W.setZero();
   F.setZero();
   P_sys.setZero();
 
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < n; j++) {
-      F(i, j) = A[n * i + j];
-    }
-  }
+      F(0, 0) = A[0];
 
   T noiseLevel_sys = 0.1;
-  for (int i = 0; i < n; i++) {
-    P_sys(i, i) = std::pow(noiseLevel_sys, 2);
-  }
+  //for (int i = 0; i < n; i++) {
+  //  P_sys(i, i) = .001;
+  //}
 
   // init ekf
-  State x_ekf;
   EigenSquare P;
-  x_ekf.setZero();
   P.setIdentity();
 
-  double error_sum = 0.0;
-  const size_t N = 2;
-
-  for (size_t i = 1; i <= N; i++) {
-
-    // propagate hidden state
-    x = F * x; 
-    for (int j = 0; j < n; j++) {
-        x[i] += noiseLevel_sys;// * noise(generator)
-    }
-
-    // ekf predict
-    x_ekf = F * x_ekf; 
-    P  = ( F * P * F.transpose() ) + ( W * P_sys * W.transpose() );
-
-    // measurement
-    Measurement m = x;
-    for (int j = 0; j < n; j++) {
-        m[i] += noiseLevel_meas;// * noise(generator)
-    }
-
+    P  = ( F * P * F.transpose() ) + ( H * P_sys );
     // ekf update
-    EigenSquare S = ( H * P * H.transpose() ) + ( V * P_meas * V.transpose() );
-    EigenSquare Sinv = S;//.inverse();
-    EigenSquare K = P * H.transpose() * Sinv;
-    x_ekf += K * ( m - x_ekf );
-    P -= K * H * P;
-            
-    error_sum += std::pow(P(0,0), 2); 
-  }
+    EigenSquare S = P + P_meas ;
+    
+    P = S * P;
+    
+    return P(0,0);
+  //}
 
-  return error_sum / (double)N;
 }
 
 int main(int argc, char **argv) {
