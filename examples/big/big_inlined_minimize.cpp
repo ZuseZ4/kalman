@@ -31,21 +31,14 @@ typedef Eigen::Matrix<T, n, 1> Measurement;
 typedef Eigen::Matrix<State::Scalar, State::RowsAtCompileTime, State::RowsAtCompileTime> EigenSquare;
 
 double simulate(double* A) {
-  // init state
-  State x;
-  
-  State x_ekf;
   EigenSquare P;
-  x_ekf.setZero();
   P.setIdentity();
-
-  double error_sum = 0.0;
 
   // ekf predict
   P  = ( P * P * P.transpose() ) + ( P * P * P.transpose() );
-  P = ( P * P * P.transpose() ) + ( P * P * P.transpose() );
+  // P = ( P * P * P.transpose() ) + ( P * P * P.transpose() );
 
-  return error_sum;
+  return 0.0;
 }
 
 int main(int argc, char **argv) {
