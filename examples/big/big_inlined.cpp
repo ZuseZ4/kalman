@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
 
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
-            A[n*i + j] = j == i ? 1.5 : 0.0;
+            A[n*i + j] = j == i ? 1.5 : 0.1;
             Adup[n*i + j] = 0.0;
             Adup_fd[n*i + j] = 0.0;
         }
@@ -132,9 +132,9 @@ int main(int argc, char **argv) {
     printf("f(A) = %f\n", fx);
 
     for (int i = 0; i < n * n; i++) {
-        A[0] += delta;
+        A[i] += delta;
         double fx2 = simulate(A);
-        A[0] -= delta;
+        A[i] -= delta;
         Adup_fd[i] = (fx2 - fx) / delta;
     }
 

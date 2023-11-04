@@ -31,62 +31,23 @@ typedef Eigen::Matrix<T, n, 1> Measurement;
 typedef Eigen::Matrix<State::Scalar, State::RowsAtCompileTime, State::RowsAtCompileTime> EigenSquare;
 
 double simulate(double* A) {
-  // init state
-  State x;
-  for (int i = 0; i < n; i++) {
-    x[i] = 1;
-  }
-  
-  // init control
-  Control u;
-  u[0] = 0.0;
-
-  // init measurement
-  EigenSquare H;
-  EigenSquare V;
-  EigenSquare P_meas;
-  H.setIdentity();
-  V.setIdentity();
-  P_meas.setIdentity();
-
-  T noiseLevel_meas = 0.1;
-  P_meas *= noiseLevel_meas;
-
-  // init system
-  EigenSquare W;
-  EigenSquare F;
-  EigenSquare P_sys;
-  W.setZero();
-  F.setZero();
-  P_sys.setZero();
-
+  EigenSquare P;
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
-      F(i, j) = A[n * i + j];
+      P(i, j) = A[n * i + j];
     }
   }
-
-  T noiseLevel_sys = 0.1;
-  for (int i = 0; i < n; i++) {
-    P_sys(i, i) = std::pow(noiseLevel_sys, 2);
-  }
-
-  // init ekf
-  State x_ekf;
-  EigenSquare P;
-  x_ekf.setZero();
-  P.setIdentity();
 
   double error_sum = 0.0;
   const size_t N = 2;
 
   for (size_t i = 1; i <= N; i++) {
 
-    P  = ( F * P * F.transpose() ) + ( W * P_sys * W.transpose() );
-    error_sum += std::pow(P(0,0), 2); 
+    P  = ( P * P * P.transpose() );
+    error_sum += P(0,0); 
   }
 
-  return error_sum / (double)N;
+  return error_sum;
 }
 
 int main(int argc, char **argv) {
