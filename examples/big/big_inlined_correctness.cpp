@@ -38,16 +38,10 @@ double simulate(double* A) {
     }
   }
 
-  double error_sum = 0.0;
-  const size_t N = 2;
+  P  = ( P * P * P.transpose() );
+  P  = ( P * P * P.transpose() );
 
-  for (size_t i = 1; i <= N; i++) {
-
-    P  = ( P * P * P.transpose() );
-    error_sum += P(0,0); 
-  }
-
-  return error_sum;
+  return P(0, 0);
 }
 
 int main(int argc, char **argv) {
