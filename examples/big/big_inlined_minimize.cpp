@@ -9,8 +9,8 @@
 #include <random>
 #include <chrono>
 
-#include <Eigen/Core>
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Dense>
 extern int enzyme_dup;
 extern int enzyme_dupnoneed;
 extern int enzyme_out;
