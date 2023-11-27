@@ -22,14 +22,8 @@ int enzyme_dup;
 int enzyme_dupnoneed;
 int enzyme_out;
 int enzyme_const;
-// template <typename return_type, typename... T>
-// return_type __enzyme_fwddiff(void *, T...);
-
-// template <typename return_type, typename... T>
-// return_type __enzyme_autodiff(void *, T...);
 
 extern double __enzyme_autodiff(void *, double);
-// double foo(double x) { return x * x; }
 
 using namespace KalmanExamples;
 
@@ -45,15 +39,11 @@ typedef Robot1::OrientationMeasurement<T> OrientationMeasurement;
 typedef Robot1::PositionMeasurementModel<T> PositionModel;
 typedef Robot1::OrientationMeasurementModel<T> OrientationModel;
 
-// using Eigen::MatrixXd;
-// using Eigen::VectorXd;
-//
-// void __enzyme_autodiff2(void *, ...);
-// void bar(MatrixXd *m, VectorXd *v) { *v = *m * *v; }
 
 double simulate(double input) {
   State x;
   x.setZero();
+
   Control u;
   SystemModel sys;
 
@@ -74,21 +64,53 @@ double simulate(double input) {
   const size_t N = 100;
   for (size_t i = 1; i <= N; i++) {
     u.v() = input;
+    u.dtheta() = 1.0;
+
+    x = sys.f(x, u);
+
+    x.x() += systemNoise * 0.5;
+    x.y() += systemNoise * 0.5;
+    x.theta() += systemNoise * 0.5;
+
     auto x_pred = predictor.predict(sys, u);
-    ekfy_sum += u.v();
+    auto x_ekf = ekf.predict(sys, u);
+
+    {
+      OrientationMeasurement orientation = om.h(x);
+      orientation.theta() = 0.1;
+
+      orientation.theta() += orientationNoise * 0.5;
+
+      x_ekf = ekf.update(om, orientation);
+    }
+
+    {
+      PositionMeasurement position = pm.h(x);
+
+      position.d1() += distanceNoise * 0.5;
+      position.d2() += distanceNoise * 0.5;
+
+      x_ekf = ekf.update(pm, position);
+    }
+
+    ekfy_sum += x_ekf.y();
+
+    std::cout << x.x() << "," << x.y() << "," << x.theta() << "," << x_pred.x()
+              << "," << x_pred.y() << "," << x_pred.theta() << "," << x_ekf.x()
+              << "," << x_ekf.y() << "," << x_ekf.theta() << std::endl;
   }
-  return ekfy_sum;
+  return ekfy_sum / (double)N;
 }
 
 int main(int argc, char **argv) {
-    double x1 = simulate(1.0);
-    double x2 = simulate(1.1);
-    std::cout << "x1: " << x1 << ", x2: " << x2 << std::endl;
+    double fx1 = simulate(1.0);
+    double fx2 = simulate(1.1);
+    std::cout << "fx1: " << fx1 << ", fx2: " << fx2 << std::endl;
 
     double df_dx1 = __enzyme_autodiff((void *)simulate, 1.0);
     double df_dx2 = __enzyme_autodiff((void *)simulate, 1.1);
-    printf("x = %f, f(x) = %f, f'(x) = %f", 1.0, x1, df_dx1);
-    printf("x = %f, f(x) = %f, f'(x) = %f", 1.1, x2, df_dx2);
+    printf("x = %f, f(x) = %f, f'(x) = %f\n", 1.0, fx1, df_dx1);
+    printf("x = %f, f(x) = %f, f'(x) = %f", 1.1, fx2, df_dx2);
 
     return 0;
 }

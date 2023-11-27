@@ -52,7 +52,7 @@ namespace Kalman {
         
     public:
         /**
-         * Measurement Model Function h
+         * Measurement Model Function h/
          * 
          * Predicts the estimated measurement value given the current state estimate x
          */

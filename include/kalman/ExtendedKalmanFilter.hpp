@@ -27,6 +27,12 @@
 #include "LinearizedSystemModel.hpp"
 #include "LinearizedMeasurementModel.hpp"
 
+// extern "C" {
+//     void dgetrf_(int* M, int* N, double* A, int* lda, int* ipiv, int* info);
+//     void dgetri_(int* N, double* A, int* lda, int* ipiv, double* work, int* lwork, int* info);
+// }
+
+
 namespace Kalman {
     
     /**
@@ -66,7 +72,8 @@ namespace Kalman {
         template<class Measurement>
         using KalmanGain = Kalman::KalmanGain<State, Measurement>;
         
-    protected:
+    // make x and P public for access
+    public:
         //! State Estimate
         using KalmanBase::x;
         //! State Covariance Matrix
@@ -113,10 +120,46 @@ namespace Kalman {
             x = s.f(x, u);
             
             // predict covariance
+            // auto P2 = P;
+            // P(0, 0) = x[0] * s.F(0, 0);
             P  = ( s.F * P * s.F.transpose() ) + ( s.W * s.getCovariance() * s.W.transpose() );
+            // P  = s.F + P2; //( s.F * P * s.F.transpose() ); //+ ( s.W * s.getCovariance() * s.W.transpose() );
+            // P = s.F * P * s.F.transpose();
+            // P  = s.F + P2; //( s.F * P * s.F.transpose() ); //+ ( s.W * s.getCovariance() * s.W.transpose() );
+            // P = P;
             
             // return state prediction
             return this->getState();
+        }
+
+        // Directly use LAPACK for matrix inverse
+        // TODO: don't hardcode single precision (maybe using LAPACKE would help with this?)
+        template<class Measurement>
+        const Covariance<Measurement> invertCovarianceMatrix(const Covariance<Measurement>& matrix) {
+            int n = matrix.rows();
+            Covariance<Measurement> result = matrix;
+
+            int *ipiv = new int[n + 1];
+            int lwork = n * n;
+            double *work = new double[lwork];
+            int info;
+
+            // Perform LU decomposition
+            dgetrf_(&n, &n, result.data(), &n, ipiv, &info);
+            if (info != 0) {
+                throw std::runtime_error("LU decomposition failed");
+            }
+
+            // Perform matrix inversion
+            dgetri_(&n, result.data(), &n, ipiv, work, &lwork, &info);
+            if (info != 0) {
+                throw std::runtime_error("Matrix inversion failed");
+            }
+
+            delete[] ipiv;
+            delete[] work;
+
+            return result;
         }
         
         /**
@@ -136,7 +179,11 @@ namespace Kalman {
             Covariance<Measurement> S = ( m.H * P * m.H.transpose() ) + ( m.V * m.getCovariance() * m.V.transpose() );
             
             // compute kalman gain
-            KalmanGain<Measurement> K = P * m.H.transpose() * S.inverse();
+            // Covariance<Measurement> Sinv = this->invertCovarianceMatrix<Measurement>(S);
+            // Covariance<Measurement> Sinv = S.inverse();
+            Covariance<Measurement> Sinv = S;
+            // KalmanGain<Measurement> K = P * m.H.transpose() * S.inverse();
+            KalmanGain<Measurement> K = P * m.H.transpose() * Sinv;//.inverse();
             
             // UPDATE STATE ESTIMATE AND COVARIANCE
             // Update state using computed kalman gain and innovation
