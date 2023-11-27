@@ -21,7 +21,7 @@ void __enzyme_autodiff(...);
 template<typename RT, typename... Args>
 RT __enzyme_autodiff(void*, Args...);
 
-const size_t n = 10;
+const size_t n = 30;
 
 typedef double T;
 typedef Eigen::Matrix<T, n, 1> State;
@@ -132,10 +132,10 @@ int main(int argc, char **argv) {
     printf("f(A) = %f\n", fx);
 
     for (int i = 0; i < n * n; i++) {
-        A[i] += delta;
+        A[i] += delta2;
         double fx2 = simulate(A);
-        A[i] -= delta;
-        Adup_fd[i] = (fx2 - fx) / delta;
+        A[i] -= delta2;
+        Adup_fd[i] = (fx2 - fx) / delta2;
     }
 
     printf("Adup_fd[0] = %f, Adup_fd[1] = %f, Adup_fd[2] = %f, Adup_fd[10] = %f\n", Adup_fd[0], Adup_fd[1], Adup_fd[2], Adup_fd[10]);
