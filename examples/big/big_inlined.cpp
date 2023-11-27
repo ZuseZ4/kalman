@@ -78,7 +78,7 @@ double simulate(double* A) {
   P.setIdentity();
 
   double error_sum = 0.0;
-  const size_t N = 2;
+  const size_t N = 4;
 
   for (size_t i = 1; i <= N; i++) {
 
@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
 
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
-            A[n*i + j] = j == i ? 1.5 : 0.1;
+            A[n*i + j] = j == i ? 0.9 : 0.9 / (4 * n);
             Adup[n*i + j] = 0.0;
             Adup_fd[n*i + j] = 0.0;
         }
